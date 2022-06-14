@@ -23,4 +23,25 @@
         navigator.requestMIDIAccess = webMidiMock.requestMIDIAccess;
         return webMidiMock;
     };
+
+    /**
+     *
+     * A function to count a component's children matching a grade.
+     *
+     * @param {Object} parentComponent - The parent component to inspect.
+     * @param {String} gradeName - The grade name for the child components we wish to count.
+     * @return {Number} - The number of child components with the requested grade name.
+     *
+     */
+    youme.tests.countChildComponents = function (parentComponent, gradeName) {
+        var childComponents = 0;
+
+        fluid.visitComponentChildren(parentComponent, function (childComponent) {
+            if (fluid.componentHasGrade(childComponent, gradeName)) {
+                childComponents++;
+            }
+        }, {});
+
+        return childComponents;
+    };
 })(fluid);

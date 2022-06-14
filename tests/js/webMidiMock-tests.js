@@ -188,13 +188,13 @@
         webMidiMock.requestMIDIAccess({ sysex: true }).then(
             function () {
                 var badTypeSpecs = {
-                    missingTypeDef: { id: "addOutput", name: "added output"},
+                    missingTypeSpec: { id: "addOutput", name: "added output"},
                     missingIdInput: { type: "input"},
                     missingIdOutput: { type: "output"}
                 };
 
-                fluid.each(badTypeSpecs, function (badTypeDef) {
-                    var explodingFunction = function () { webMidiMock.addPort(badTypeDef); };
+                fluid.each(badTypeSpecs, function (badTypeSpec) {
+                    var explodingFunction = function () { webMidiMock.addPort(badTypeSpec); };
                     jqUnit.expectFrameworkDiagnostic("Adding a bad port definition should result in an error.", explodingFunction, ["Attempted to add invalid port"]);
                 });
 
@@ -209,10 +209,10 @@
 
     jqUnit.test("We should be able to open a port directly.", function () {
         jqUnit.expect(4);
-        var inputDef = { type: "input", id: "toOpen", name: "sample input"};
+        var inputSpec = { type: "input", id: "toOpen", name: "sample input"};
         var webMidiMock = youme.tests.webMidiMock({
             inputSpecs: {
-                toOpen: inputDef
+                toOpen: inputSpec
             }
         });
 
@@ -226,7 +226,7 @@
 
 
                 // Before any changes.
-                jqUnit.assertLeftHand("The input port mock should be part of the access object.", inputDef, inputPort);
+                jqUnit.assertLeftHand("The input port mock should be part of the access object.", inputSpec, inputPort);
 
                 jqUnit.stop();
 
@@ -248,10 +248,10 @@
 
     jqUnit.test("We should be able to open a port via the parent component.", function () {
         jqUnit.expect(4);
-        var inputDef = { type: "input", id: "toOpen", name: "sample input"};
+        var inputSpec = { type: "input", id: "toOpen", name: "sample input"};
         var webMidiMock = youme.tests.webMidiMock({
             inputSpecs: {
-                toOpen: inputDef
+                toOpen: inputSpec
             }
         });
 
@@ -264,9 +264,9 @@
                 jqUnit.assertEquals("There should be no calls in the port's register.", 0, inputPort.calls.open.length);
 
                 // Before any changes.
-                jqUnit.assertLeftHand("The input port mock should be part of the access object.", inputDef, inputPort);
+                jqUnit.assertLeftHand("The input port mock should be part of the access object.", inputSpec, inputPort);
 
-                webMidiMock.openPort(inputDef);
+                webMidiMock.openPort(inputSpec);
                 jqUnit.assertEquals("The port should now be open.", "open", inputPort.connection);
                 jqUnit.assertDeepEq("Our call should have been added to the port's register.", [], inputPort.calls.open);
             },
@@ -278,10 +278,10 @@
 
     jqUnit.test("Opening a port should result in a state change event.", function () {
         jqUnit.expect(2);
-        var inputDef = { type: "input", id: "toOpen", name: "sample input"};
+        var inputSpec = { type: "input", id: "toOpen", name: "sample input"};
         var webMidiMock = youme.tests.webMidiMock({
             inputSpecs: {
-                toOpen: inputDef
+                toOpen: inputSpec
             }
         });
 
@@ -293,7 +293,7 @@
                 var inputPort = access.inputs.get("toOpen");
 
                 // Before any changes.
-                jqUnit.assertLeftHand("The input port mock should be part of the access object.", inputDef, inputPort);
+                jqUnit.assertLeftHand("The input port mock should be part of the access object.", inputSpec, inputPort);
 
                 access.onstatechange = function () {
                     jqUnit.start();
@@ -302,7 +302,7 @@
 
                 jqUnit.stop();
                 // inputPort.open();
-                webMidiMock.openPort(inputDef);
+                webMidiMock.openPort(inputSpec);
             },
             function () {
                 jqUnit.fail("The promise should not have been rejected.");
@@ -312,10 +312,10 @@
 
     jqUnit.test("We should be able to close a port directly.", function () {
         jqUnit.expect(4);
-        var inputDef = { type: "input", id: "toClose", name: "sample input", connection: "open"};
+        var inputSpec = { type: "input", id: "toClose", name: "sample input", connection: "open"};
         var webMidiMock = youme.tests.webMidiMock({
             inputSpecs: {
-                toClose: inputDef
+                toClose: inputSpec
             }
         });
 
@@ -327,7 +327,7 @@
                 var inputPort = access.inputs.get("toClose");
 
                 // Before any changes.
-                jqUnit.assertLeftHand("The input port mock should be part of the access object.", inputDef, inputPort);
+                jqUnit.assertLeftHand("The input port mock should be part of the access object.", inputSpec, inputPort);
                 jqUnit.assertEquals("There should be no calls in the port's register.", 0, inputPort.calls.close.length);
 
                 jqUnit.stop();
@@ -350,10 +350,10 @@
 
     jqUnit.test("We should be able to close a port via the parent component.", function () {
         jqUnit.expect(4);
-        var outputDef = { type: "output", id: "toClose", name: "sample output", connection: "open"};
+        var outputSpec = { type: "output", id: "toClose", name: "sample output", connection: "open"};
         var webMidiMock = youme.tests.webMidiMock({
             outputSpecs: {
-                toClose: outputDef
+                toClose: outputSpec
             }
         });
 
@@ -365,10 +365,10 @@
                 var outputPort = access.outputs.get("toClose");
 
                 // Before any changes.
-                jqUnit.assertLeftHand("The output port mock should be part of the access object.", outputDef, outputPort);
+                jqUnit.assertLeftHand("The output port mock should be part of the access object.", outputSpec, outputPort);
                 jqUnit.assertEquals("There should be no calls in the port's register.", 0, outputPort.calls.close.length);
 
-                webMidiMock.closePort(outputDef);
+                webMidiMock.closePort(outputSpec);
                 jqUnit.assertEquals("The port should now be closed.", "closed", outputPort.connection);
                 jqUnit.assertDeepEq("Our call should have been added to the port's register.", [], outputPort.calls.close);
             },
@@ -380,10 +380,10 @@
 
     jqUnit.test("Closing a port should result in a state change event.", function () {
         jqUnit.expect(2);
-        var inputDef = { type: "input", id: "toClose", name: "sample input", connection: "open"};
+        var inputSpec = { type: "input", id: "toClose", name: "sample input", connection: "open"};
         var webMidiMock = youme.tests.webMidiMock({
             inputSpecs: {
-                toClose: inputDef
+                toClose: inputSpec
             }
         });
 
@@ -395,7 +395,7 @@
                 var inputPort = access.inputs.get("toClose");
 
                 // Before any changes.
-                jqUnit.assertLeftHand("The input port mock should be part of the access object.", inputDef, inputPort);
+                jqUnit.assertLeftHand("The input port mock should be part of the access object.", inputSpec, inputPort);
 
                 access.onstatechange = function () {
                     jqUnit.start();
@@ -403,7 +403,7 @@
                 };
 
                 jqUnit.stop();
-                webMidiMock.closePort(inputDef);
+                webMidiMock.closePort(inputSpec);
             },
             function () {
                 jqUnit.fail("The promise should not have been rejected.");
@@ -413,10 +413,10 @@
 
     jqUnit.test("We should be able to connect a port via the parent component.", function () {
         jqUnit.expect(2);
-        var inputDef = { type: "input", id: "toClose", name: "sample input" };
+        var inputSpec = { type: "input", id: "toClose", name: "sample input" };
         var webMidiMock = youme.tests.webMidiMock({
             inputSpecs: {
-                toConnect: inputDef
+                toConnect: inputSpec
             }
         });
 
@@ -428,9 +428,9 @@
                 var inputPort = access.inputs.get("toClose");
 
                 // Before any changes.
-                jqUnit.assertLeftHand("The input port mock should be part of the access object.", inputDef, inputPort);
+                jqUnit.assertLeftHand("The input port mock should be part of the access object.", inputSpec, inputPort);
 
-                webMidiMock.connectPort(inputDef);
+                webMidiMock.connectPort(inputSpec);
                 jqUnit.assertEquals("The port should now be connected.", "connected", inputPort.state);
             },
             function () {
@@ -441,10 +441,10 @@
 
     jqUnit.test("Connecting a port should result in a state change event.", function () {
         jqUnit.expect(2);
-        var inputDef = { type: "input", id: "toConnect", name: "sample input" };
+        var inputSpec = { type: "input", id: "toConnect", name: "sample input" };
         var webMidiMock = youme.tests.webMidiMock({
             inputSpecs: {
-                toConnect: inputDef
+                toConnect: inputSpec
             }
         });
 
@@ -456,7 +456,7 @@
                 var inputPort = access.inputs.get("toConnect");
 
                 // Before any changes.
-                jqUnit.assertLeftHand("The input port mock should be part of the access object.", inputDef, inputPort);
+                jqUnit.assertLeftHand("The input port mock should be part of the access object.", inputSpec, inputPort);
 
                 access.onstatechange = function () {
                     jqUnit.start();
@@ -464,7 +464,7 @@
                 };
 
                 jqUnit.stop();
-                webMidiMock.connectPort(inputDef);
+                webMidiMock.connectPort(inputSpec);
             },
             function () {
                 jqUnit.fail("The promise should not have been rejected.");
@@ -474,10 +474,10 @@
 
     jqUnit.test("We should be able to disconnect a port via the parent component.", function () {
         jqUnit.expect(2);
-        var inputDef = { type: "input", id: "toClose", name: "sample input" };
+        var inputSpec = { type: "input", id: "toClose", name: "sample input" };
         var webMidiMock = youme.tests.webMidiMock({
             inputSpecs: {
-                toConnect: inputDef
+                toConnect: inputSpec
             }
         });
 
@@ -489,9 +489,9 @@
                 var inputPort = access.inputs.get("toClose");
 
                 // Before any changes.
-                jqUnit.assertLeftHand("The input port mock should be part of the access object.", inputDef, inputPort);
+                jqUnit.assertLeftHand("The input port mock should be part of the access object.", inputSpec, inputPort);
 
-                webMidiMock.connectPort(inputDef);
+                webMidiMock.connectPort(inputSpec);
                 jqUnit.assertEquals("The port should now be connected.", "connected", inputPort.state);
             },
             function () {
@@ -502,10 +502,10 @@
 
     jqUnit.test("Disconnecting a port should result in a state change event.", function () {
         jqUnit.expect(2);
-        var inputDef = { type: "input", id: "toConnect", name: "sample input" };
+        var inputSpec = { type: "input", id: "toConnect", name: "sample input" };
         var webMidiMock = youme.tests.webMidiMock({
             inputSpecs: {
-                toConnect: inputDef
+                toConnect: inputSpec
             }
         });
 
@@ -517,7 +517,7 @@
                 var inputPort = access.inputs.get("toConnect");
 
                 // Before any changes.
-                jqUnit.assertLeftHand("The input port mock should be part of the access object.", inputDef, inputPort);
+                jqUnit.assertLeftHand("The input port mock should be part of the access object.", inputSpec, inputPort);
 
                 access.onstatechange = function () {
                     jqUnit.start();
@@ -525,7 +525,7 @@
                 };
 
                 jqUnit.stop();
-                webMidiMock.connectPort(inputDef);
+                webMidiMock.connectPort(inputSpec);
             },
             function () {
                 jqUnit.fail("The promise should not have been rejected.");
@@ -554,10 +554,10 @@
 
     jqUnit.test("We should be able to add a listener for midimessage events.", function () {
         jqUnit.expect(1);
-        var inputDef = { type: "input", id: "toReceive", name: "sample input" };
+        var inputSpec = { type: "input", id: "toReceive", name: "sample input" };
         var webMidiMock = youme.tests.webMidiMock({
             inputSpecs: {
-                toReceive: inputDef
+                toReceive: inputSpec
             }
         });
 
@@ -585,10 +585,10 @@
 
     jqUnit.test("We should be able to add a callback to receive midimessage events.", function () {
         jqUnit.expect(1);
-        var inputDef = { type: "input", id: "toReceive", name: "sample input" };
+        var inputSpec = { type: "input", id: "toReceive", name: "sample input" };
         var webMidiMock = youme.tests.webMidiMock({
             inputSpecs: {
-                toReceive: inputDef
+                toReceive: inputSpec
             }
         });
 
@@ -616,10 +616,10 @@
 
     jqUnit.test("We should be able to call an output port's send method.", function () {
         jqUnit.expect(1);
-        var outputDef = { type: "output", id: "toSend", name: "sample input" };
+        var outputSpec = { type: "output", id: "toSend", name: "sample input" };
         var webMidiMock = youme.tests.webMidiMock({
             outputSpecs: {
-                toSend: outputDef
+                toSend: outputSpec
             }
         });
 
@@ -640,10 +640,10 @@
 
     jqUnit.test("We should be able to call an output port's clear method.", function () {
         jqUnit.expect(1);
-        var outputDef = { type: "output", id: "toClear", name: "sample input" };
+        var outputSpec = { type: "output", id: "toClear", name: "sample input" };
         var webMidiMock = youme.tests.webMidiMock({
             outputSpecs: {
-                toClear: outputDef
+                toClear: outputSpec
             }
         });
 
