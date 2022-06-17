@@ -60,7 +60,7 @@ perspective of an output port mock, `{port}.calls.sent.length` represents the nu
 was called, and `{port}.calls.sent[0]` represents the arguments passed for the first call to the `sent` method.
 
 From the perspective of the enclosing `youme.tests.webMidiMock` component, the same information would be found at
-`{that}.model.outputs.{id}.calls.sent.length` and `{that}.model.outputs.{id}.calls.sent[0]`.
+`{that}.outputs.get({id}).calls.sent.length` and `{that}.outputs.get({id}).calls.sent[0]`.
 
 ### Event Targets
 
@@ -146,6 +146,10 @@ Flag a given port as "connected".
 * Returns: Nothing.
 
 Flag a given port as "disconnected".
+
+### `{youme.tests.webMidiMock}.findPorts(portSpec)`
+
+Search both inputs and outputs for anything matching `portSpec` and return an array of matches.
 
 ### `{youme.tests.webMidiMock}.openPort(portSpec)`
 
