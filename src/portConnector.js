@@ -91,11 +91,14 @@
 
     // TODO: If we use this pattern much more widely, make the grade name a variable and move this somewhere more central.
     youme.portConnector.callAllChildInvokers = function (that, invokerName, invokerArgs) {
-        fluid.visitComponentChildren(that, function (childComponent) {
-            if (fluid.componentHasGrade(childComponent, "youme.connection")) {
-                childComponent[invokerName].apply(childComponent, fluid.makeArray(invokerArgs));
-            }
-        }, {}); // Empty options are required to avoid an error.
+        // This catches some, but not all cases in which the shadow layer doesn't exist, but "it's fine" (for now).
+        if (!fluid.isDestroyed(that)) {
+            fluid.visitComponentChildren(that, function (childComponent) {
+                if (fluid.componentHasGrade(childComponent, "youme.connection")) {
+                    childComponent[invokerName].apply(childComponent, fluid.makeArray(invokerArgs));
+                }
+            }, {}); // Empty options are required to avoid an error.
+        }
     };
 
     fluid.defaults("youme.portConnector.input", {

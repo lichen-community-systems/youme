@@ -126,16 +126,20 @@
 
     youme.multiPortConnector.callAllChildInvokers = function (that, gradeName, invokerName, invokerArgs) {
         var childrenToInvoke = [];
-        // We have to collect the list first rather than destroying each as we find them, otherwise things break down.
-        fluid.visitComponentChildren(that, function (childComponent) {
-            if (fluid.componentHasGrade(childComponent, gradeName)) {
-                childrenToInvoke.push(childComponent);
-            }
-        }, {}); // Empty options are required to avoid an error.
 
-        fluid.each(childrenToInvoke, function (childComponent) {
-            childComponent[invokerName].apply(childComponent, fluid.makeArray(invokerArgs));
-        });
+        // This catches some, but not all cases in which the shadow layer doesn't exist, but "it's fine" (for now).
+        if (!fluid.isDestroyed(that)) {
+            // We have to collect the list first rather than destroying each as we find them, otherwise things break down.
+            fluid.visitComponentChildren(that, function (childComponent) {
+                if (fluid.componentHasGrade(childComponent, gradeName)) {
+                    childrenToInvoke.push(childComponent);
+                }
+            }, {}); // Empty options are required to avoid an error.
+
+            fluid.each(childrenToInvoke, function (childComponent) {
+                childComponent[invokerName].apply(childComponent, fluid.makeArray(invokerArgs));
+            });
+        }
     };
 
     fluid.defaults("youme.multiPortConnector.inputs", {
