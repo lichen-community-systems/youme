@@ -13,7 +13,8 @@
         gradeNames: ["fluid.modelComponent"],
 
         events: {
-            attemptConnection: null
+            attemptConnection: null,
+            onPortOpen: null
         },
 
         model: {
@@ -44,6 +45,11 @@
                     portSpec: "{youme.portConnector}.model.portSpec",
                     members: {
                         port: "{arguments}.0"
+                    },
+                    listeners: {
+                        "onPortOpen.notifyParent": {
+                            func: "{youme.portConnector}.events.onPortOpen.fire"
+                        }
                     }
                 }
             }
