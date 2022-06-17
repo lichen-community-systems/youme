@@ -14,16 +14,21 @@
         gradeNames: ["fluid.modelComponent"],
 
         rejectAccess: false,
+
         inputSpecs: {},
         outputSpecs: {},
-        events: {
-            statechange: null
-        },
+
         portDefaults: {
             connection: "closed",
             state: "disconnected"
         },
+
+        events: {
+            statechange: null
+        },
+
         members: {
+            existingRequestMIDIAccess: null,
             calls: {
                 requestMIDIAccess: []
             },
@@ -58,6 +63,10 @@
                 funcName: "youme.tests.webMidiMock.changePortProperty",
                 args: ["{that}", "{arguments}.0", "state", "disconnected"] // portSpec, propertyKey, value
             },
+            findPorts: {
+                funcName: "youme.tests.webMidiMock.findPorts",
+                args: ["@expand:youme.tests.webMidiMock.mapToArray({that}.inputs)", "@expand:youme.tests.webMidiMock.mapToArray({that}.outputs)", "{arguments}.0"] // inputs, outputs, portSpec
+            },
             generateMockPort: {
                 funcName: "youme.tests.webMidiMock.generateMockPort",
                 args: ["{that}.options.portDefaults", "{arguments}.0"] // portDefaults, portSpec, shouldReject
@@ -72,12 +81,48 @@
             }
         },
         listeners: {
+            "onCreate.replaceRequestMIDIAccess": {
+                funcName: "youme.tests.webMidiMock.replaceRequestMIDIAccess",
+                args: ["{that}"]
+            },
+            "onDestroy.restoreRequestMIDIAccess": {
+                funcName: "youme.tests.webMidiMock.restoreRequestMIDIAccess",
+                args: ["{that}"]
+            },
             "statechange.notifyAccessEventTargets": {
                 funcName: "youme.tests.webMidiMock.notifyAccessEventTargets",
                 args: ["{that}", "{arguments}.0"] // portChanged
             }
         }
     });
+
+    youme.tests.webMidiMock.replaceRequestMIDIAccess = function (that) {
+        that.existingRequestMIDIAccess = navigator.requestMIDIAccess;
+        navigator.requestMIDIAccess = that.requestMIDIAccess;
+    };
+
+    youme.tests.webMidiMock.restoreRequestMIDIAccess = function (that) {
+        navigator.requestMIDIAccess = that.existingRequestMIDIAccess;
+    };
+
+    youme.tests.webMidiMock.mapToArray = function (map) {
+        var array = [];
+        var iterator = map.values();
+
+        var next = iterator.next();
+        while (!next.done) {
+            array.push(next.value);
+            next = iterator.next();
+        }
+
+        return array;
+    };
+
+    youme.tests.webMidiMock.findPorts = function (inputs, outputs, portSpec) {
+        var inputPorts = youme.findPorts(inputs, portSpec);
+        var outputPorts = youme.findPorts(outputs, portSpec);
+        return inputPorts.concat(outputPorts);
+    };
 
     youme.tests.webMidiMock.expandPortSpecMap = function (portSpecMap, portExpander) {
         var expanded = new Map();
