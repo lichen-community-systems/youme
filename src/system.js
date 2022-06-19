@@ -132,9 +132,7 @@
     };
 
     youme.system.listenForPortChanges = function (that, access) {
-        if (access) {
-            access.onstatechange = that.refreshPorts;
-        }
+        access.onstatechange = that.refreshPorts;
     };
 
     youme.system.stopListeningForPortChanges = function (access) {
