@@ -71,8 +71,7 @@
     youme.connection.open = function (port, onPortOpen, onError) {
         if (port) {
             var portOpenPromise = port.open();
-            portOpenPromise.then(onPortOpen);
-            portOpenPromise["catch"](onError);
+            portOpenPromise.then(onPortOpen, onError);
         }
         else {
             onError("Port is missing, cannot open connection.");
@@ -82,8 +81,7 @@
     youme.connection.close = function (port, onPortClose, onError) {
         if (port) {
             var portClosePromise =  port.close();
-            portClosePromise.then(onPortClose);
-            portClosePromise["catch"](onError);
+            portClosePromise.then(onPortClose, onError);
         }
         else {
             onError("Port is missing, cannot close connection.");
