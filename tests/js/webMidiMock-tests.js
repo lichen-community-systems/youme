@@ -16,13 +16,17 @@
         var webMidiMock = youme.tests.webMidiMock();
         jqUnit.assertEquals("There should be no calls in the register.", 0, webMidiMock.calls.requestMIDIAccess.length);
 
+        jqUnit.stop();
+
         webMidiMock.requestMIDIAccess().then(
             function (access) {
+                jqUnit.start();
                 jqUnit.assertNotUndefined("The promise should have returned a value.", access);
                 jqUnit.assertDeepEq("The access object should have been stored.", access, fluid.get(webMidiMock, "accessEventTargets.0"));
                 jqUnit.assertDeepEq("Our arguments should have been stored in the call register.", [], webMidiMock.calls.requestMIDIAccess[0]);
             },
             function () {
+                jqUnit.start();
                 jqUnit.fail("The promise should not have been rejected.");
             }
         );
@@ -33,14 +37,18 @@
         var webMidiMock = youme.tests.webMidiMock();
         jqUnit.assertEquals("There should be no calls in the register.", 0, webMidiMock.calls.requestMIDIAccess.length);
 
+        jqUnit.stop();
+
         var requestArgs = { sysex: true };
         webMidiMock.requestMIDIAccess(requestArgs).then(
             function (access) {
+                jqUnit.start();
                 jqUnit.assertTrue("Our access option should have been respected.", access.sysexEnabled);
                 jqUnit.assertDeepEq("The access object should have been stored.", access, webMidiMock.accessEventTargets[0]);
                 jqUnit.assertDeepEq("Our arguments should have been stored in the call register.", [requestArgs], webMidiMock.calls.requestMIDIAccess[0]);
             },
             function () {
+                jqUnit.start();
                 jqUnit.fail("The promise should not have been rejected.");
             }
         );
@@ -49,11 +57,16 @@
     jqUnit.test("We should be able to simulate a rejected access request.", function () {
         jqUnit.expect(2);
         var webMidiMock = youme.tests.webMidiMock({ rejectAccess: true });
+
+        jqUnit.stop();
+
         webMidiMock.requestMIDIAccess().then(
             function () {
+                jqUnit.start();
                 jqUnit.fail("Our access request should have been rejected.");
             },
             function () {
+                jqUnit.start();
                 jqUnit.assert("The promise was rejected as expected.");
                 jqUnit.assertDeepEq("Our arguments should have been stored in the call register.", [], webMidiMock.calls.requestMIDIAccess[0]);
             }
@@ -69,8 +82,12 @@
                 firstOutput: { type: "output", id: "output1", name: "sample output 1"}
             }
         });
+
+        jqUnit.stop();
+
         webMidiMock.requestMIDIAccess().then(
             function (access) {
+                jqUnit.start();
                 // Inspect the access object returned by the promise.
                 jqUnit.assertLeftHand("The input port mock should be part of the access object.", { id: "input1", name: "sample input 1" }, access.inputs.get("input1"));
                 jqUnit.assertLeftHand("The output port mock should be part of the access object.", { id: "output1", name: "sample output 1" }, access.outputs.get("output1"));
@@ -80,6 +97,7 @@
                 jqUnit.assertLeftHand("The output port mock should be stored in the component.", { id: "output1", name: "sample output 1" }, webMidiMock.outputs.get("output1"));
             },
             function () {
+                jqUnit.start();
                 jqUnit.fail("The promise should not have been rejected.");
             }
         );
@@ -127,9 +145,11 @@
 
     jqUnit.test("We should be able to listen for state changes with a named callback.", function () {
         jqUnit.expect(3);
-        jqUnit.stop();
 
         var webMidiMock = youme.tests.webMidiMock();
+
+        jqUnit.stop();
+
         webMidiMock.requestMIDIAccess({ sysex: true }).then(
             function (access) {
                 jqUnit.start();
@@ -148,6 +168,7 @@
                 webMidiMock.addPort(addedPortSpec);
             },
             function () {
+                jqUnit.start();
                 jqUnit.fail("The promise should not have been rejected.");
             }
         );
@@ -155,9 +176,11 @@
 
     jqUnit.test("We should be able to listen for state changes by adding a listener.", function () {
         jqUnit.expect(3);
-        jqUnit.stop();
 
         var webMidiMock = youme.tests.webMidiMock();
+
+        jqUnit.stop();
+
         webMidiMock.requestMIDIAccess({ sysex: true }).then(
             function (access) {
                 jqUnit.start();
@@ -176,6 +199,7 @@
                 webMidiMock.addPort(addedPortSpec);
             },
             function () {
+                jqUnit.start();
                 jqUnit.fail("The promise should not have been rejected.");
             }
         );
@@ -185,8 +209,13 @@
         // You have to omit the expectFrameworkDiagnostic calls from the count.
         jqUnit.expect(2);
         var webMidiMock = youme.tests.webMidiMock();
+
+
+        jqUnit.stop();
+
         webMidiMock.requestMIDIAccess({ sysex: true }).then(
             function () {
+                jqUnit.start();
                 var badTypeSpecs = {
                     missingTypeSpec: { id: "addOutput", name: "added output"},
                     missingIdInput: { type: "input"},
@@ -202,6 +231,7 @@
                 jqUnit.assertEquals("There should be no new outputs.", 0, webMidiMock.outputs.size);
             },
             function () {
+                jqUnit.start();
                 jqUnit.fail("The promise should not have been rejected.");
             }
         );
@@ -236,11 +266,15 @@
                         jqUnit.assertEquals("The port should now be open.", "open", inputPort.connection);
                         jqUnit.assertDeepEq("Our call should have been added to the port's register.", [[]], inputPort.calls.open);
                     },
-                    jqUnit.fail
+                    function () {
+                        jqUnit.start();
+                        jqUnit.fail("The port open promise should not have been rejected.");
+                    }
                 );
 
             },
             function () {
+                jqUnit.start();
                 jqUnit.fail("The promise should not have been rejected.");
             }
         );
@@ -271,6 +305,7 @@
                 jqUnit.assertDeepEq("Our call should have been added to the port's register.", [], inputPort.calls.open);
             },
             function () {
+                jqUnit.start();
                 jqUnit.fail("The promise should not have been rejected.");
             }
         );
@@ -305,6 +340,7 @@
                 webMidiMock.openPort(inputSpec);
             },
             function () {
+                jqUnit.start();
                 jqUnit.fail("The promise should not have been rejected.");
             }
         );
@@ -338,11 +374,15 @@
                         jqUnit.assertEquals("The port should now be closed.", "closed", inputPort.connection);
                         jqUnit.assertDeepEq("Our call should have been added to the port's register.", [[]], inputPort.calls.close);
                     },
-                    jqUnit.fail
+                    function () {
+                        jqUnit.start();
+                        jqUnit.fail("The port close promise should not have been rejected.")
+                    }
                 );
 
             },
             function () {
+                jqUnit.start();
                 jqUnit.fail("The promise should not have been rejected.");
             }
         );
@@ -373,6 +413,7 @@
                 jqUnit.assertDeepEq("Our call should have been added to the port's register.", [], outputPort.calls.close);
             },
             function () {
+                jqUnit.start();
                 jqUnit.fail("The promise should not have been rejected.");
             }
         );
@@ -406,6 +447,7 @@
                 webMidiMock.closePort(inputSpec);
             },
             function () {
+                jqUnit.start();
                 jqUnit.fail("The promise should not have been rejected.");
             }
         );
@@ -434,6 +476,7 @@
                 jqUnit.assertEquals("The port should now be connected.", "connected", inputPort.state);
             },
             function () {
+                jqUnit.start();
                 jqUnit.fail("The promise should not have been rejected.");
             }
         );
@@ -467,6 +510,7 @@
                 webMidiMock.connectPort(inputSpec);
             },
             function () {
+                jqUnit.start();
                 jqUnit.fail("The promise should not have been rejected.");
             }
         );
@@ -495,6 +539,7 @@
                 jqUnit.assertEquals("The port should now be connected.", "connected", inputPort.state);
             },
             function () {
+                jqUnit.start();
                 jqUnit.fail("The promise should not have been rejected.");
             }
         );
@@ -528,6 +573,7 @@
                 webMidiMock.connectPort(inputSpec);
             },
             function () {
+                jqUnit.start();
                 jqUnit.fail("The promise should not have been rejected.");
             }
         );
@@ -578,6 +624,7 @@
                 inputPort.dispatchEvent(new Event("midimessage", {}));
             },
             function () {
+                jqUnit.start();
                 jqUnit.fail("The promise should not have been rejected.");
             }
         );
@@ -609,6 +656,7 @@
                 inputPort.dispatchEvent(new Event("midimessage", {}));
             },
             function () {
+                jqUnit.start();
                 jqUnit.fail("The promise should not have been rejected.");
             }
         );
@@ -633,6 +681,7 @@
                 jqUnit.assertDeepEq("Our arguments should have been stored in the call register.", [], outputPort.calls.send[0]);
             },
             function () {
+                jqUnit.start();
                 jqUnit.fail("The promise should not have been rejected.");
             }
         );
@@ -657,6 +706,7 @@
                 jqUnit.assertDeepEq("Our arguments should have been stored in the call register.", [], outputPort.calls.clear[0]);
             },
             function () {
+                jqUnit.start();
                 jqUnit.fail("The promise should not have been rejected.");
             }
         );

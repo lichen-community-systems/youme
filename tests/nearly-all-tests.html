@@ -8,7 +8,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <title>Youme: All Tests</title>
+    <title>Youme: (Nearly) All Tests</title>
 
     <link rel="stylesheet" media="screen" href="../node_modules/infusion/tests/lib/qunit/css/qunit.css" />
     <link rel="stylesheet" href="../node_modules/infusion/tests/lib/qunit/addons/composite/qunit-composite.css">
@@ -22,13 +22,14 @@
     <script>
         var rawTestSuites = {
             "YouMe Tests": [
+                "/system-tests.html",
                 "/connection-tests.html",
                 "/findPorts-tests.html",
                 "/message-tests.html",
-                // TODO: There is some kind of interaction between these three that's preventing full runs.
-                "/system-tests.html",
-                "/webMidiMock-tests.html",
-                "/portConnector-tests.html"
+                // TODO: One or more tests run after either of these fail with no assertions.
+                // For now, we just firewall one of them off in its own rollup.
+                // "/webMidiMock-tests.html",
+                "/portConnector-tests.html",
             ]
         };
 
