@@ -40,8 +40,7 @@ fluid.contextAware.makeChecks({
 
 var testemComponent = youme.tests.testem({
     testPages:   [
-        "tests/nearly-all-tests.html",
-        "tests/webmidimock-test-rollup.html"
+        "tests/all-tests.html"
     ],
     sourceDirs: {
         src: "%youme/src"

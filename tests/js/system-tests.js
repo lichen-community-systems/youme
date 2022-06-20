@@ -33,7 +33,7 @@
     jqUnit.test("The system should be able to handle access rejection.", function () {
         jqUnit.expect(1);
         youme.tests.createWebMidiMock({ rejectAccess: true});
-        var system = youme.system({
+        youme.system({
             listeners: {
                 "onReady": {
                     funcName: "jqUnit.fail",
