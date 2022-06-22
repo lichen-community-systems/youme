@@ -72,17 +72,19 @@ as part of your tests.
 
 #### `MIDIAccess` Mock
 
-| Name               | Type          | Description                                                                              |
-|--------------------|---------------|------------------------------------------------------------------------------------------|
-| `sysexEnabled`     | `Boolean`     | Whether we can send/receive sysex messages using this access object.                     |
-| `inputs`           | `Map`         | A map of input mocks (see below).                                                        |
-| `outputs`          | `Map`         | A map of output mocks (see below).                                                       |
-| `calls`            | `Object`      | A register of calls made to each function, including the arguments supplied (see above). |
-| `onstatechange`    | `Function`    | A function to call when ports change (connect, disconnect, etc.).                        |
-| `addEventListener` | `Function`    | Add a listener for events the access object receives.                                    |
-| `dispatchEvent`    | `Function`    | Dispatch an event to the access object.                                                  |
+| Name               | Type                     | Description                                                                              |
+|--------------------|--------------------------|------------------------------------------------------------------------------------------|
+| `sysexEnabled`     | `Boolean`                | Whether we can send/receive sysex messages using this access object.                     |
+| `inputs`           | `Map<String,MIDIInput>`  | A map of input mocks (see below).                                                        |
+| `outputs`          | `Map<String,MIDIOutput>` | A map of output mocks (see below).                                                       |
+| `calls`            | `Object`                 | A register of calls made to each function, including the arguments supplied (see above). |
+| `onstatechange`    | `Function`               | A function to call when ports change (connect, disconnect, etc.).                        |
+| `addEventListener` | `Function`               | Add a listener for events the access object receives.                                    |
+| `dispatchEvent`    | `Function`               | Dispatch an event to the access object.                                                  |
 
 #### `MIDIPort` Mock
+
+##### Properties
 
 | Name           | Type       | Description                                                                              |
 |----------------|------------|------------------------------------------------------------------------------------------|
@@ -93,28 +95,56 @@ as part of your tests.
 | `state`        | `String`   | The state of the port, either "open", "pending", or "closed".                            |
 | `connected`    | `String`   | "connected" if the port is connected, "disconnected" otherwise.                          |
 | `calls`        | `Object`   | A register of calls made to each function, including the arguments supplied (see above). |
-| `open`         | `Function` | A function that will handle requests to open a connection to this port.                  |
-| `close`        | `Function` | A function that will handle requests to close the connection to this port.               |
+
+##### Methods
+
+###### `{MIDIPort}.open()`
+
+* Returns: A `Promise` that is already resolved.
+
+A function that will handle requests to open a connection to this port.
+
+###### `{MIDIPort}.close()`
+
+* Returns: A `Promise` that is already resolved.
+
+A function that will handle requests to close the connection to this port.
 
 #### `MIDIInput` Mock
 
 In addition to the properties and functions supported by a `MIDIPort` (see above), a MIDI input has two additional
 methods:
 
-| Name               | Type          | Description                                   |
-|--------------------|---------------|-----------------------------------------------|
-| `addEventListener` | `Function`    | Add a listener for events the input receives. |
-| `dispatchEvent`    | `Function`    | Dispatch an event to the input.               |
+##### `{MIDIInput}.addEventListener(messageType, listener)`
+
+* `messageType {String}` - The type of message (typically `"midimessage"`).
+* `listener {Function}` - A function to call when an `Event` of `messageType` is dispatched to the `MIDIInput`.  The
+  function should accept one argument, namely the `Event`.
+
+##### `{MIDIInput}.dispatchEvent(event)`
+
+* `event {Event}` - The event to dispatch (should be a [MIDIMessageEvent](https://developer.mozilla.org/en-US/docs/Web/API/MIDIMessageEvent)).
+* Returns: Nothing.
+
+Dispatch an event to the input.
 
 #### `MIDIOutput` Mock
 
 In addition to the properties and functions supported by a `MIDIPort` (see above), a MIDI output has two additional
 methods:
 
-| Name    | Type       | Description                                                                             |
-|---------|------------|-----------------------------------------------------------------------------------------|
-| `send`  | `Function` | A function that handles requests to send messages to this port.                         |
-| `clear` | `Function` | A function that handles requests to clear messages in progress being sent by this port. |
+##### `{MIDIOutput}.send(midiMessage)`
+
+* `midiMessage {Uint8Array}` - An Uint8Array representing the MIDI message to be sent, see [`MIDIMessageEvent.data`](https://developer.mozilla.org/en-US/docs/Web/API/MIDIMessageEvent/data) for more details.
+* Returns: Nothing.
+
+A function that handles requests to send messages to this port.
+
+##### `{MIDIOutput}.clear()`
+
+* Returns: Nothing.
+
+A function that handles requests to clear messages in progress being sent by this port.
 
 ## Invokers
 
