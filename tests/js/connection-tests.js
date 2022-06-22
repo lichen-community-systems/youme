@@ -37,24 +37,34 @@
 
     jqUnit.test("We should be able to open a connection manually.", function () {
         var port = youme.test.connection.generateSafePort();
+
+        var onPortOpenListener = function () {
+            jqUnit.start();
+            jqUnit.assertEquals("The port should be open after calling the open invoker.", port.connection, "open");
+        };
+
+        var onErrorListener = function () {
+            jqUnit.start();
+            jqUnit.fail("There should not have been an error opening the connection.");
+        };
+
         var connection = youme.connection({
             openImmediately: false,
             members: {
                 port: port
+            },
+            listeners: {
+                "onPortOpen.runAssertion": {
+                    priority: "after:startListening",
+                    func: onPortOpenListener
+                },
+                "onError.fail": {
+                    func: onErrorListener
+                }
             }
         });
 
         jqUnit.assertEquals("The port should not be open on startup.", port.connection, "closed");
-
-        connection.events.onPortOpen.addListener(function () {
-            jqUnit.start();
-            jqUnit.assertEquals("The port should be open after calling the open invoker.", port.connection, "open");
-        });
-
-        connection.events.onError.addListener(function () {
-            jqUnit.start();
-            jqUnit.fail("There should not have been an error opening the connection.");
-        });
 
         jqUnit.stop();
         connection.open();
@@ -257,6 +267,15 @@
             jqUnit.fail("There should not have been an error opening the connection.");
         };
 
+        var onPortOpenListener = function () {
+            var midiEvent = new Event("midimessage");
+            midiEvent.data = youme.write(sampleMessage);
+
+            port.dispatchEvent(midiEvent);
+        };
+
+        jqUnit.stop();
+
         youme.connection.input({
             openImmediately: true,
             members: {
@@ -268,15 +287,13 @@
                 },
                 onError: {
                     func: onErrorListener
+                },
+                "onPortOpen.triggerMessage": {
+                    priority: "after:startListening",
+                    func: onPortOpenListener
                 }
             }
         });
-
-        jqUnit.stop();
-        var midiEvent = new Event("midimessage");
-        midiEvent.data = youme.write(sampleMessage);
-
-        port.dispatchEvent(midiEvent);
     });
 
 

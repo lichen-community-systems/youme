@@ -98,7 +98,7 @@
         },
 
         listeners: {
-            "onCreate.startListening": {
+            "onPortOpen.startListening": {
                 funcName: "youme.connection.input.startListening",
                 args: ["{that}.port", "{that}.events.onRaw.fire"]
             },
