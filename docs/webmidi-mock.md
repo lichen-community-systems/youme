@@ -135,7 +135,8 @@ methods:
 
 ##### `{MIDIOutput}.send(midiMessage)`
 
-* `midiMessage {Uint8Array}` - An Uint8Array representing the MIDI message to be sent, see [`MIDIMessageEvent.data`](https://developer.mozilla.org/en-US/docs/Web/API/MIDIMessageEvent/data) for more details.
+* `midiMessage {Uint8Array}` - An Uint8Array representing the MIDI message to be sent, see
+  [`MIDIMessageEvent.data`](https://developer.mozilla.org/en-US/docs/Web/API/MIDIMessageEvent/data) for more details.
 * Returns: Nothing.
 
 A function that handles requests to send messages to this port.
