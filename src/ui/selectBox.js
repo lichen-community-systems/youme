@@ -42,10 +42,6 @@
         },
 
         invokers: {
-            handleSelectChange: {
-                funcName: "youme.selectBox.handleSelectChange",
-                args: ["{that}", "{arguments}.0"]
-            },
             renderMarkup: {
                 funcName: "youme.selectBox.render",
                 args: ["{that}", "{that}.options.markup.container"] // containerTemplate
@@ -76,6 +72,12 @@
                 method: "html",
                 args: ["{that}.model.label"]
             }
+        },
+        modelRelay: {
+            bindValue: {
+                source: "dom.selectBox.value",
+                target: "selectedItemId"
+            }
         }
     });
 
@@ -100,11 +102,5 @@
         var mergedContainerVariables = fluid.extend({}, that.model, { optionsContent: optionsContent});
         var renderedContent = fluid.stringTemplate(containerTemplate, mergedContainerVariables);
         return renderedContent;
-    };
-
-    youme.selectBox.handleSelectChange = function (that) {
-        var selectElement = that.locate("selectBox");
-        var selected = selectElement.val();
-        that.applier.change("selectedItemId", selected);
     };
 })(fluid);
