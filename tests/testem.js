@@ -39,7 +39,7 @@ fluid.contextAware.makeChecks({
 
 
 var testemComponent = youme.tests.testem({
-    testPages:   [
+    testPages: [
         "tests/all-tests.html"
     ],
     sourceDirs: {
@@ -48,7 +48,7 @@ var testemComponent = youme.tests.testem({
     coverageDir: "%youme/coverage",
     reportsDir: "%youme/reports",
     contentDirs: {
-        tests:        "%youme/tests",
+        tests: "%youme/tests",
         node_modules: "%youme/node_modules"
     },
     testemOptions: {

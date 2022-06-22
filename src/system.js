@@ -88,7 +88,7 @@
             "onAccessGranted.bindAutoRefresh": {
                 priority: "after:refreshPorts",
                 funcName: "youme.system.listenForPortChanges",
-                args:     ["{that}", "{arguments}.0"] // accessObject
+                args: ["{that}", "{arguments}.0"] // accessObject
             },
 
             "onAccessGranted.fireOnReady": {
@@ -109,7 +109,7 @@
 
             "onDestroy.stopListening": {
                 funcName: "youme.system.stopListeningForPortChanges",
-                args:     ["{that}.access"] // accessObject
+                args: ["{that}.access"] // accessObject
             }
         }
     });

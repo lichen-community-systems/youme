@@ -30,7 +30,7 @@
         gradeNames: ["youme.multiPortConnector.connections"],
 
         dynamicComponents: {
-            connection : {
+            connection: {
                 type: "youme.connection.input",
                 sources: "{connections}.options.sources",
                 options: {
@@ -48,7 +48,7 @@
         gradeNames: ["youme.multiPortConnector.connections"],
 
         dynamicComponents: {
-            connection : {
+            connection: {
                 type: "youme.connection.output",
                 sources: "{connections}.options.sources",
                 options: {
@@ -154,7 +154,7 @@
                 options: {
                     sources: "{arguments}.0",
                     dynamicComponents: {
-                        connection : {
+                        connection: {
                             options: {
                                 listeners: {
                                     "onActiveSense.relay": "{youme.multiPortConnector.inputs}.events.onActiveSense.fire",
@@ -196,7 +196,7 @@
                 options: {
                     sources: "{arguments}.0",
                     dynamicComponents: {
-                        connection : {
+                        connection: {
                             options: {
                                 events: {
                                     sendActiveSense: "{youme.multiPortConnector.outputs}.events.sendActiveSense",
