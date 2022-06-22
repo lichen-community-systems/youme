@@ -27,7 +27,7 @@
         },
 
         markup: {
-            // TODO: Discuss why the dom is only built correctly if there is an outer div wrapping all selectable content.
+            // There must be a single top-level element, see https://issues.fluidproject.org/browse/FLUID-6740
             container: "<div class='youme-select-container'><h3 class='youme-select-label'>%label</h3><select class='youme-select'>%optionsContent</select></div>",
             optionItem: "<option value='%id' %selected>%name</option>\n"
         },
