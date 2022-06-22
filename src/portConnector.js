@@ -13,12 +13,12 @@
         gradeNames: ["fluid.modelComponent"],
 
         events: {
-            attemptConnection: null,
             onPortOpen: null
         },
 
         model: {
-            portSpec: {}
+            portSpec: {},
+            connectionPort: null
         },
 
         invokers: {
@@ -36,15 +36,16 @@
         components: {
             midiSystem: {
                 type: "youme.system"
-            },
+            }
+        },
+        dynamicComponents: {
             connection: {
-                createOnEvent: "attemptConnection",
+                source: "{that}.model.connectionPort",
                 type: "youme.connection",
                 options: {
                     openImmediately: true,
-                    portSpec: "{youme.portConnector}.model.portSpec",
                     members: {
-                        port: "{arguments}.0"
+                        port: "{source}"
                     },
                     listeners: {
                         "onPortOpen.notifyParent": {
@@ -57,18 +58,19 @@
         modelListeners: {
             "ports": {
                 excludeSource: "init",
-                funcName: "youme.portConnector.attemptConnection",
+                funcName: "youme.portConnector.findPort",
                 args: ["{that}"]
             },
             "portSpec": {
                 excludeSource: "init",
-                funcName: "youme.portConnector.attemptConnection",
+                funcName: "youme.portConnector.findPort",
                 args: ["{that}"]
             }
         }
     });
 
-    youme.portConnector.attemptConnection = function (that) {
+    youme.portConnector.findPort = function (that) {
+        var connectionPort = false;
         if (that.model.portSpec) {
             var portsToSearch = fluid.makeArray(fluid.get(that, ["model", "ports"]));
             if (portsToSearch.length === 0) {
@@ -81,18 +83,15 @@
                     fluid.log(fluid.logLevel.WARN, "No matching ports were found for port specification: ", JSON.stringify(that.options.portSpec));
                 }
                 else if (ports.length === 1) {
-                    // Lightly update the portSpec to reflect the ID, so that select boxes can detect that we have found it.
-                    that.applier.change("portSpec.id", ports[0].id);
-                    that.events.attemptConnection.fire(ports[0]);
+                    connectionPort = ports[0];
                 }
                 else if (ports.length > 1) {
                     fluid.log(fluid.logLevel.WARN, "More than one port found for port specification: ", JSON.stringify(that.options.portSpec));
                 }
             }
         }
-        else {
-            youme.portConnector.callAllChildInvokers(that, "destroy");
-        }
+
+        that.applier.change("connectionPort", connectionPort);
     };
 
     // TODO: If we use this pattern much more widely, make the grade name a variable and move this somewhere more central.
@@ -114,7 +113,7 @@
             ports: "{youme.system}.model.ports.inputs"
         },
 
-        components: {
+        dynamicComponents: {
             connection: {
                 type: "youme.connection.input",
                 options: {
@@ -150,7 +149,7 @@
             ports: "{youme.system}.model.ports.outputs"
         },
 
-        components: {
+        dynamicComponents: {
             connection: {
                 type: "youme.connection.output",
                 options: {

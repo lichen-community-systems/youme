@@ -21,8 +21,6 @@
 
         openImmediately: false,
 
-        portSpec: {},
-
         members: {
             port: false
         },
@@ -91,12 +89,6 @@
     fluid.defaults("youme.connection.input", {
         gradeNames: ["youme.connection", "youme.messageReceiver"],
 
-        model: {
-            portSpec: {
-                type: "input"
-            }
-        },
-
         listeners: {
             "onPortOpen.startListening": {
                 funcName: "youme.connection.input.startListening",
@@ -162,12 +154,6 @@
 
     fluid.defaults("youme.connection.output", {
         gradeNames: ["youme.connection", "youme.messageSender"],
-
-        model: {
-            portSpec: {
-                type: "output"
-            }
-        },
 
         listeners: {
             "sendActiveSense.send": {

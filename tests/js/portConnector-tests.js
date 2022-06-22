@@ -173,15 +173,16 @@
         var runTests = function (that) {
             jqUnit.start();
             jqUnit.assertEquals("There should be one connection.", 1, youme.tests.countChildComponents(that, "youme.connection.input"));
+            jqUnit.stop();
+        };
 
+        var portOpenListener = function () {
             var access = webMidiMock.accessEventTargets[0];
             var inputPort = access.inputs.get("input1");
 
             var midiEvent = new Event("midimessage");
             midiEvent.data = youme.write(sampleMessage);
 
-            // Stop to wait for the message to be received (noteOnListener will be run).
-            jqUnit.stop();
             inputPort.dispatchEvent(midiEvent);
         };
 
@@ -201,6 +202,18 @@
             listeners: {
                 "onNoteOn.checkResults": {
                     func: noteOnListener
+                }
+            },
+            dynamicComponents: {
+                connection: {
+                    options: {
+                        listeners: {
+                            "onPortOpen.sendMessage": {
+                                priority: "after:startListening",
+                                func: portOpenListener
+                            }
+                        }
+                    }
                 }
             }
         });
