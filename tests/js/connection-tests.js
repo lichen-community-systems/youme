@@ -34,43 +34,6 @@
         );
     };
 
-
-    jqUnit.test("We should be able to open a connection manually.", function () {
-        var port = youme.test.connection.generateSafePort();
-
-        var onPortOpenListener = function () {
-            jqUnit.start();
-            jqUnit.assertEquals("The port should be open after calling the open invoker.", port.connection, "open");
-        };
-
-        var onErrorListener = function () {
-            jqUnit.start();
-            jqUnit.fail("There should not have been an error opening the connection.");
-        };
-
-        var connection = youme.connection({
-            openImmediately: false,
-            members: {
-                port: port
-            },
-            listeners: {
-                "onPortOpen.runAssertion": {
-                    priority: "after:startListening",
-                    func: onPortOpenListener
-                },
-                "onError.fail": {
-                    func: onErrorListener
-                }
-            }
-        });
-
-        jqUnit.assertEquals("The port should not be open on startup.", port.connection, "closed");
-
-        jqUnit.stop();
-        connection.open();
-    });
-
-
     jqUnit.test("We should be able to open a connection automatically.", function () {
         var port = youme.test.connection.generateSafePort();
 
@@ -87,8 +50,7 @@
         };
 
         youme.connection({
-            openImmediately: true,
-            members: {
+            model: {
                 port: port
             },
             listeners: {
@@ -116,8 +78,7 @@
         };
 
         youme.connection({
-            openImmediately: true,
-            members: {
+            model: {
                 port: false
             },
             listeners: {
@@ -147,8 +108,7 @@
         };
 
         youme.connection({
-            openImmediately: true,
-            members: {
+            model: {
                 port: explodingPort
             },
             listeners: {
@@ -165,13 +125,12 @@
     jqUnit.test("We should be able to close a connection.", function () {
         var port = youme.test.connection.generateSafePort();
         var connection = youme.connection({
-            openImmediately: true,
-            members: {
+            model: {
                 port: port
             }
         });
 
-        jqUnit.assertEquals("The port be open on startup.", port.connection, "open");
+        jqUnit.assertEquals("The port should be open on startup.", port.connection, "open");
 
         connection.events.onPortClose.addListener(function () {
             jqUnit.start();
@@ -200,20 +159,18 @@
         };
 
         var connection = youme.connection({
-            // Don't let it auto open or that will prematurely trigger an onError event.
-            openImmediately: false,
-            members: {
+            model: {
                 port: false
             },
             listeners: {
                 onPortClose: {
                     func: onPortCloseListener
-                },
-                onError: {
-                    func: onErrorListener
                 }
             }
         });
+
+        // We have to add this after startup to avoid the onError event that results from opening the port.
+        connection.events.onError.addListener(onErrorListener);
 
         jqUnit.stop();
         connection.close();
@@ -230,25 +187,27 @@
         var onErrorListener = function () {
             jqUnit.start();
             jqUnit.assert("There should have been an error closing the connection.");
+
+            // We have to unregister ourselves to avoid the error that occurs when the component is destroyed.
+            connection.events.onError.removeListener(onErrorListener);
         };
 
         var connection = youme.connection({
-            // Don't let it auto open or that will prematurely trigger an onError event.
-            openImmediately: false,
-            members: {
+            model: {
                 port: explodingPort
             },
             listeners: {
                 onPortClose: {
                     func: onPortCloseListener
-                },
-                onError: {
-                    func: onErrorListener
                 }
             }
         });
 
         jqUnit.stop();
+
+        // We have to add this after startup to avoid the onError event that results from opening the port.
+        connection.events.onError.addListener(onErrorListener);
+
         connection.close();
     });
 
@@ -277,8 +236,7 @@
         jqUnit.stop();
 
         youme.connection.input({
-            openImmediately: true,
-            members: {
+            model: {
                 port: port
             },
             listeners: {
@@ -308,8 +266,7 @@
         };
 
         var connection = youme.connection.output({
-            openImmediately: true,
-            members: {
+            model: {
                 port: port
             },
             listeners: {
@@ -332,17 +289,13 @@
         };
 
         var connection = youme.connection.output({
-            // Don't let it auto open or that will prematurely trigger an onError event.
-            openImmediately: false,
-            members: {
+            model: {
                 port: false
-            },
-            listeners: {
-                onError: {
-                    func: onErrorListener
-                }
             }
         });
+
+        // We have to add this after startup to avoid the onError event that results from opening the port.
+        connection.events.onError.addListener(onErrorListener);
 
         jqUnit.stop();
         connection.events.sendMessage.fire({ type: "noteOff", channel: 0, note: 1, velocity: 2});
@@ -359,8 +312,7 @@
         };
 
         var connection = youme.connection.output({
-            openImmediately: true,
-            members: {
+            model: {
                 port: port
             },
             listeners: {

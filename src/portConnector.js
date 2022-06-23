@@ -43,8 +43,7 @@
                 source: "{that}.model.connectionPort",
                 type: "youme.connection",
                 options: {
-                    openImmediately: true,
-                    members: {
+                    model: {
                         port: "{source}"
                     },
                     listeners: {

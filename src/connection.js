@@ -17,11 +17,9 @@
      *
      **/
     fluid.defaults("youme.connection", {
-        gradeNames: ["fluid.component"],
+        gradeNames: ["fluid.modelComponent"],
 
-        openImmediately: false,
-
-        members: {
+        model: {
             port: false
         },
 
@@ -34,36 +32,37 @@
         invokers: {
             open: {
                 funcName: "youme.connection.open",
-                args: ["{that}.port", "{that}.events.onPortOpen.fire", "{that}.events.onError.fire"] // port, onPortOpen, onError
+                args: ["{that}.model.port", "{that}.events.onPortOpen.fire", "{that}.events.onError.fire"] // port, onPortOpen, onError
             },
 
             close: {
                 funcName: "youme.connection.close",
-                args: ["{that}.port", "{that}.events.onPortClose.fire", "{that}.events.onError.fire"] // port, onPortClose, onError
+                args: ["{that}.model.port", "{that}.events.onPortClose.fire", "{that}.events.onError.fire"] // port, onPortClose, onError
             }
         },
 
         listeners: {
-            "onCreate.autoOpen": {
-                funcName: "youme.connection.autoOpen",
-                args: [
-                    "{that}.options.openImmediately", "{that}.open"
-                ]
-            },
-
             "onError.logError": {
                 funcName: "fluid.log",
                 args: [fluid.logLevel.WARN, "{arguments}.0"]
             },
 
             "onDestroy.close": "{that}.close"
+        },
+
+        modelListeners: {
+            port: {
+                funcName: "youme.connection.handlePortChange",
+                args: ["{change}.oldValue", "{that}.open"]
+            }
         }
     });
 
-    youme.connection.autoOpen = function (openImmediately, openFn) {
-        if (openImmediately) {
-            openFn();
+    youme.connection.handlePortChange = function (oldPort, openFn) {
+        if (oldPort) {
+            oldPort.close();
         }
+        openFn();
     };
 
     youme.connection.open = function (port, onPortOpen, onError) {
@@ -92,11 +91,11 @@
         listeners: {
             "onPortOpen.startListening": {
                 funcName: "youme.connection.input.startListening",
-                args: ["{that}.port", "{that}.events.onRaw.fire"]
+                args: ["{that}.model.port", "{that}.events.onRaw.fire"]
             },
             "onPortClose.stopListening": {
                 funcName: "youme.connection.input.stopListening",
-                args: ["{that}.port", "{that}.events.onRaw.fire"]
+                args: ["{that}.model.port", "{that}.events.onRaw.fire"]
             },
             "onRaw.fireMidiEvent": {
                 funcName: "youme.connection.fireEvent",
@@ -158,75 +157,75 @@
         listeners: {
             "sendActiveSense.send": {
                 funcName: "youme.connection.output.sendMessageOfType",
-                args: ["{that}.port", "{arguments}.0", "activeSense", "{that}.events.onError.fire"] // port, midiMessage, allowedMessageType, onError
+                args: ["{that}.model.port", "{arguments}.0", "activeSense", "{that}.events.onError.fire"] // port, midiMessage, allowedMessageType, onError
             },
             "sendAftertouch.send": {
                 funcName: "youme.connection.output.sendMessageOfType",
-                args: ["{that}.port", "{arguments}.0", "aftertouch", "{that}.events.onError.fire"] // port, midiMessage, allowedMessageType, onError
+                args: ["{that}.model.port", "{arguments}.0", "aftertouch", "{that}.events.onError.fire"] // port, midiMessage, allowedMessageType, onError
             },
             "sendClock.send": {
                 funcName: "youme.connection.output.sendMessageOfType",
-                args: ["{that}.port", "{arguments}.0", "clock", "{that}.events.onError.fire"] // port, midiMessage, allowedMessageType, onError
+                args: ["{that}.model.port", "{arguments}.0", "clock", "{that}.events.onError.fire"] // port, midiMessage, allowedMessageType, onError
             },
             "sendContinue.send": {
                 funcName: "youme.connection.output.sendMessageOfType",
-                args: ["{that}.port", "{arguments}.0", "continue", "{that}.events.onError.fire"] // port, midiMessage, allowedMessageType, onError
+                args: ["{that}.model.port", "{arguments}.0", "continue", "{that}.events.onError.fire"] // port, midiMessage, allowedMessageType, onError
             },
             "sendControl.send": {
                 funcName: "youme.connection.output.sendMessageOfType",
-                args: ["{that}.port", "{arguments}.0", "control", "{that}.events.onError.fire"] // port, midiMessage, allowedMessageType, onError
+                args: ["{that}.model.port", "{arguments}.0", "control", "{that}.events.onError.fire"] // port, midiMessage, allowedMessageType, onError
             },
             "sendMessage.send": {
                 funcName: "youme.connection.output.send",
-                args: ["{that}.port", "{arguments}.0", "{that}.events.onError.fire"] // port, midiMessage, onError
+                args: ["{that}.model.port", "{arguments}.0", "{that}.events.onError.fire"] // port, midiMessage, onError
             },
             "sendNoteOn.send": {
                 funcName: "youme.connection.output.sendMessageOfType",
-                args: ["{that}.port", "{arguments}.0", "noteOn", "{that}.events.onError.fire"] // port, midiMessage, allowedMessageType, onError
+                args: ["{that}.model.port", "{arguments}.0", "noteOn", "{that}.events.onError.fire"] // port, midiMessage, allowedMessageType, onError
             },
             "sendNoteOff.send": {
                 funcName: "youme.connection.output.sendMessageOfType",
-                args: ["{that}.port", "{arguments}.0", "noteOff", "{that}.events.onError.fire"] // port, midiMessage, allowedMessageType, onError
+                args: ["{that}.model.port", "{arguments}.0", "noteOff", "{that}.events.onError.fire"] // port, midiMessage, allowedMessageType, onError
             },
             "sendPitchbend.send": {
                 funcName: "youme.connection.output.sendMessageOfType",
-                args: ["{that}.port", "{arguments}.0", "pitchbend", "{that}.events.onError.fire"] // port, midiMessage, allowedMessageType, onError
+                args: ["{that}.model.port", "{arguments}.0", "pitchbend", "{that}.events.onError.fire"] // port, midiMessage, allowedMessageType, onError
             },
             "sendProgram.send": {
                 funcName: "youme.connection.output.sendMessageOfType",
-                args: ["{that}.port", "{arguments}.0", "program", "{that}.events.onError.fire"] // port, midiMessage, allowedMessageType, onError
+                args: ["{that}.model.port", "{arguments}.0", "program", "{that}.events.onError.fire"] // port, midiMessage, allowedMessageType, onError
             },
             "sendRaw.send": {
                 funcName: "youme.connection.output.send",
-                args: ["{that}.port", "{arguments}.0", "{that}.events.onError.fire"] // port, midiMessage, onError
+                args: ["{that}.model.port", "{arguments}.0", "{that}.events.onError.fire"] // port, midiMessage, onError
             },
             "sendReset.send": {
                 funcName: "youme.connection.output.sendMessageOfType",
-                args: ["{that}.port", "{arguments}.0", "reset", "{that}.events.onError.fire"] // port, midiMessage, allowedMessageType, onError
+                args: ["{that}.model.port", "{arguments}.0", "reset", "{that}.events.onError.fire"] // port, midiMessage, allowedMessageType, onError
             },
             "sendSysex.send": {
                 funcName: "youme.connection.output.sendMessageOfType",
-                args: ["{that}.port", "{arguments}.0", "sysex", "{that}.events.onError.fire"] // port, midiMessage, allowedMessageType
+                args: ["{that}.model.port", "{arguments}.0", "sysex", "{that}.events.onError.fire"] // port, midiMessage, allowedMessageType
             },
             "sendSongPointer.send": {
                 funcName: "youme.connection.output.sendMessageOfType",
-                args: ["{that}.port", "{arguments}.0", "songPointer", "{that}.events.onError.fire"] // port, midiMessage, allowedMessageType
+                args: ["{that}.model.port", "{arguments}.0", "songPointer", "{that}.events.onError.fire"] // port, midiMessage, allowedMessageType
             },
             "sendSongSelect.send": {
                 funcName: "youme.connection.output.sendMessageOfType",
-                args: ["{that}.port", "{arguments}.0", "songSelect", "{that}.events.onError.fire"] // port, midiMessage, allowedMessageType
+                args: ["{that}.model.port", "{arguments}.0", "songSelect", "{that}.events.onError.fire"] // port, midiMessage, allowedMessageType
             },
             "sendStart.send": {
                 funcName: "youme.connection.output.sendMessageOfType",
-                args: ["{that}.port", "{arguments}.0", "start", "{that}.events.onError.fire"] // port, midiMessage, allowedMessageType
+                args: ["{that}.model.port", "{arguments}.0", "start", "{that}.events.onError.fire"] // port, midiMessage, allowedMessageType
             },
             "sendStop.send": {
                 funcName: "youme.connection.output.sendMessageOfType",
-                args: ["{that}.port", "{arguments}.0", "stop", "{that}.events.onError.fire"] // port, midiMessage, allowedMessageType
+                args: ["{that}.model.port", "{arguments}.0", "stop", "{that}.events.onError.fire"] // port, midiMessage, allowedMessageType
             },
             "sendTuneRequest.send": {
                 funcName: "youme.connection.output.sendMessageOfType",
-                args: ["{that}.port", "{arguments}.0", "tuneRequest", "{that}.events.onError.fire"] // port, midiMessage, allowedMessageType
+                args: ["{that}.model.port", "{arguments}.0", "tuneRequest", "{that}.events.onError.fire"] // port, midiMessage, allowedMessageType
             }
         }
     });

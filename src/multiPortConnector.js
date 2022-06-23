@@ -44,8 +44,7 @@
                 type: "youme.connection",
                 sources: "{youme.multiPortConnector}.model.connectionPorts",
                 options: {
-                    openImmediately: true,
-                    members: {
+                    model: {
                         port: "{source}"
                     }
                 }
@@ -86,7 +85,7 @@
         transaction.commit();
     };
 
-    youme.multiPortConnector.callAllChildInvokers = function (that, gradeName, invokerName, invokerArgs) {
+    youme.multiPortConnector.callAllChildInvokers = function (that, gradeName, invokerPath, invokerArgs) {
         var childrenToInvoke = [];
 
         // This catches some, but not all cases in which the shadow layer doesn't exist, but "it's fine" (for now).
@@ -99,7 +98,10 @@
             }, {}); // Empty options are required to avoid an error.
 
             fluid.each(childrenToInvoke, function (childComponent) {
-                childComponent[invokerName].apply(childComponent, fluid.makeArray(invokerArgs));
+                var invoker = fluid.get(childComponent, invokerPath);
+                if (typeof invoker === "function") {
+                    invoker.apply(childComponent, fluid.makeArray(invokerArgs));
+                }
             });
         }
     };
@@ -107,6 +109,7 @@
     fluid.defaults("youme.multiPortConnector.inputs", {
         gradeNames: ["youme.multiPortConnector", "youme.messageReceiver"],
 
+        // youme.multiPortConnector.callAllChildInvokers = function (that, gradeName, invokerName, invokerArgs)
         dynamicComponents: {
             connection: {
                 type: "youme.connection.input",
@@ -141,32 +144,122 @@
 
         direction: "outputs",
 
+
+        invokers: {
+            relayEvent: {
+                funcName: "youme.multiPortConnector.outputs.relayEvent",
+                args: ["{that}", "{arguments}.0", "{arguments}.1"] // eventName, payload
+            }
+        },
+
         dynamicComponents: {
             connection: {
                 type: "youme.connection.output",
                 options: {
-                    events: {
-                        sendActiveSense: "{youme.multiPortConnector.outputs}.events.sendActiveSense",
-                        sendAftertouch: "{youme.multiPortConnector.outputs}.events.sendAftertouch",
-                        sendClock: "{youme.multiPortConnector.outputs}.events.sendClock",
-                        sendContinue: "{youme.multiPortConnector.outputs}.events.sendContinue",
-                        sendControl: "{youme.multiPortConnector.outputs}.events.sendControl",
-                        sendMessage: "{youme.multiPortConnector.outputs}.events.sendMessage",
-                        sendNoteOff: "{youme.multiPortConnector.outputs}.events.sendNoteOff",
-                        sendNoteOn: "{youme.multiPortConnector.outputs}.events.sendNoteOn",
-                        sendPitchbend: "{youme.multiPortConnector.outputs}.events.sendPitchbend",
-                        sendProgram: "{youme.multiPortConnector.outputs}.events.sendProgram",
-                        sendRaw: "{youme.multiPortConnector.outputs}.events.sendRaw",
-                        sendReset: "{youme.multiPortConnector.outputs}.events.sendReset",
-                        sendSongPointer: "{youme.multiPortConnector.outputs}.events.sendSongPointer",
-                        sendSongSelect: "{youme.multiPortConnector.outputs}.events.sendSongSelect",
-                        sendStart: "{youme.multiPortConnector.outputs}.events.sendStart",
-                        sendStop: "{youme.multiPortConnector.outputs}.events.sendStop",
-                        sendSysex: "{youme.multiPortConnector.outputs}.events.sendSysex",
-                        sendTuneRequest: "{youme.multiPortConnector.outputs}.events.sendTuneRequest"
-                    }
+                    // We couldn't use this pattern for multiple ports because it seems like only one port ends up
+                    // being able to receive events.
+                    // events: {
+                    //     sendActiveSense: "{youme.multiPortConnector.outputs}.events.sendActiveSense",
+                    //     sendAftertouch: "{youme.multiPortConnector.outputs}.events.sendAftertouch",
+                    //     sendClock: "{youme.multiPortConnector.outputs}.events.sendClock",
+                    //     sendContinue: "{youme.multiPortConnector.outputs}.events.sendContinue",
+                    //     sendControl: "{youme.multiPortConnector.outputs}.events.sendControl",
+                    //     sendMessage: "{youme.multiPortConnector.outputs}.events.sendMessage",
+                    //     sendNoteOff: "{youme.multiPortConnector.outputs}.events.sendNoteOff",
+                    //     sendNoteOn: "{youme.multiPortConnector.outputs}.events.sendNoteOn",
+                    //     sendPitchbend: "{youme.multiPortConnector.outputs}.events.sendPitchbend",
+                    //     sendProgram: "{youme.multiPortConnector.outputs}.events.sendProgram",
+                    //     sendRaw: "{youme.multiPortConnector.outputs}.events.sendRaw",
+                    //     sendReset: "{youme.multiPortConnector.outputs}.events.sendReset",
+                    //     sendSongPointer: "{youme.multiPortConnector.outputs}.events.sendSongPointer",
+                    //     sendSongSelect: "{youme.multiPortConnector.outputs}.events.sendSongSelect",
+                    //     sendStart: "{youme.multiPortConnector.outputs}.events.sendStart",
+                    //     sendStop: "{youme.multiPortConnector.outputs}.events.sendStop",
+                    //     sendSysex: "{youme.multiPortConnector.outputs}.events.sendSysex",
+                    //     sendTuneRequest: "{youme.multiPortConnector.outputs}.events.sendTuneRequest"
+                    // }
                 }
+            }
+        },
+
+        listeners: {
+            sendActiveSense: {
+                func: "{that}.relayEvent",
+                args: ["sendActiveSense", "{arguments}.0"] // eventName, payload
+            },
+            sendAftertouch: {
+                func: "{that}.relayEvent",
+                args: ["sendAftertouch", "{arguments}.0"] // eventName, payload
+            },
+            sendClock: {
+                func: "{that}.relayEvent",
+                args: ["sendClock", "{arguments}.0"] // eventName, payload
+            },
+            sendContinue: {
+                func: "{that}.relayEvent",
+                args: ["sendContinue", "{arguments}.0"] // eventName, payload
+            },
+            sendControl: {
+                func: "{that}.relayEvent",
+                args: ["sendControl", "{arguments}.0"] // eventName, payload
+            },
+            sendMessage: {
+                func: "{that}.relayEvent",
+                args: ["sendMessage", "{arguments}.0"] // eventName, payload
+            },
+            sendNoteOff: {
+                func: "{that}.relayEvent",
+                args: ["sendNoteOff", "{arguments}.0"] // eventName, payload
+            },
+            sendNoteOn: {
+                func: "{that}.relayEvent",
+                args: ["sendNoteOn", "{arguments}.0"] // eventName, payload
+            },
+            sendPitchbend: {
+                func: "{that}.relayEvent",
+                args: ["sendPitchbend", "{arguments}.0"] // eventName, payload
+            },
+            sendProgram: {
+                func: "{that}.relayEvent",
+                args: ["sendProgram", "{arguments}.0"] // eventName, payload
+            },
+            sendRaw: {
+                func: "{that}.relayEvent",
+                args: ["sendRaw", "{arguments}.0"] // eventName, payload
+            },
+            sendReset: {
+                func: "{that}.relayEvent",
+                args: ["sendReset", "{arguments}.0"] // eventName, payload
+            },
+            sendSongPointer: {
+                func: "{that}.relayEvent",
+                args: ["sendSongPointer", "{arguments}.0"] // eventName, payload
+            },
+            sendSongSelect: {
+                func: "{that}.relayEvent",
+                args: ["sendSongSelect", "{arguments}.0"] // eventName, payload
+            },
+            sendStart: {
+                func: "{that}.relayEvent",
+                args: ["sendStart", "{arguments}.0"] // eventName, payload
+            },
+            sendStop: {
+                func: "{that}.relayEvent",
+                args: ["sendStop", "{arguments}.0"] // eventName, payload
+            },
+            sendSysex: {
+                func: "{that}.relayEvent",
+                args: ["sendSysex", "{arguments}.0"] // eventName, payload
+            },
+            sendTuneRequest: {
+                func: "{that}.relayEvent",
+                args: ["sendTuneRequest", "{arguments}.0"] // eventName, payload
             }
         }
     });
+
+    youme.multiPortConnector.outputs.relayEvent = function (that, eventName, payload) {
+        var invokerName = ["events", eventName, "fire"].join(".");
+        youme.multiPortConnector.callAllChildInvokers(that, "youme.connection", invokerName, [payload]);
+    };
 })(fluid);
