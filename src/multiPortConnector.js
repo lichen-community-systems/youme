@@ -156,27 +156,26 @@
             connection: {
                 type: "youme.connection.output",
                 options: {
-                    // We couldn't use this pattern for multiple ports because it seems like only one port ends up
-                    // being able to receive events.
-                    // events: {
-                    //     sendActiveSense: "{youme.multiPortConnector.outputs}.events.sendActiveSense",
-                    //     sendAftertouch: "{youme.multiPortConnector.outputs}.events.sendAftertouch",
-                    //     sendClock: "{youme.multiPortConnector.outputs}.events.sendClock",
-                    //     sendContinue: "{youme.multiPortConnector.outputs}.events.sendContinue",
-                    //     sendControl: "{youme.multiPortConnector.outputs}.events.sendControl",
-                    //     sendMessage: "{youme.multiPortConnector.outputs}.events.sendMessage",
-                    //     sendNoteOff: "{youme.multiPortConnector.outputs}.events.sendNoteOff",
-                    //     sendNoteOn: "{youme.multiPortConnector.outputs}.events.sendNoteOn",
-                    //     sendPitchbend: "{youme.multiPortConnector.outputs}.events.sendPitchbend",
-                    //     sendProgram: "{youme.multiPortConnector.outputs}.events.sendProgram",
-                    //     sendRaw: "{youme.multiPortConnector.outputs}.events.sendRaw",
-                    //     sendReset: "{youme.multiPortConnector.outputs}.events.sendReset",
-                    //     sendSongPointer: "{youme.multiPortConnector.outputs}.events.sendSongPointer",
-                    //     sendSongSelect: "{youme.multiPortConnector.outputs}.events.sendSongSelect",
-                    //     sendStart: "{youme.multiPortConnector.outputs}.events.sendStart",
-                    //     sendStop: "{youme.multiPortConnector.outputs}.events.sendStop",
-                    //     sendSysex: "{youme.multiPortConnector.outputs}.events.sendSysex",
-                    //     sendTuneRequest: "{youme.multiPortConnector.outputs}.events.sendTuneRequest"
+                    // If use this, we only ever hear from one input, where the relay approach allows it.
+                    // listeners: {
+                    //     "{youme.multiPortConnector.outputs}.events.sendActiveSense": "{that}.events.sendActiveSense.fire",
+                    //     "{youme.multiPortConnector.outputs}.events.sendAftertouch": "{that}.events.sendAftertouch.fire",
+                    //     "{youme.multiPortConnector.outputs}.events.sendClock": "{that}.events.sendClock.fire",
+                    //     "{youme.multiPortConnector.outputs}.events.sendContinue": "{that}.events.sendContinue.fire",
+                    //     "{youme.multiPortConnector.outputs}.events.sendControl": "{that}.events.sendControl.fire",
+                    //     "{youme.multiPortConnector.outputs}.events.sendMessage": "{that}.events.sendMessage.fire",
+                    //     "{youme.multiPortConnector.outputs}.events.sendNoteOff": "{that}.events.sendNoteOff.fire",
+                    //     "{youme.multiPortConnector.outputs}.events.sendNoteOn": "{that}.events.sendNoteOn.fire",
+                    //     "{youme.multiPortConnector.outputs}.events.sendPitchbend": "{that}.events.sendPitchbend.fire",
+                    //     "{youme.multiPortConnector.outputs}.events.sendProgram": "{that}.events.sendProgram.fire",
+                    //     "{youme.multiPortConnector.outputs}.events.sendRaw": "{that}.events.sendRaw.fire",
+                    //     "{youme.multiPortConnector.outputs}.events.sendReset": "{that}.events.sendReset.fire",
+                    //     "{youme.multiPortConnector.outputs}.events.sendSongPointer": "{that}.events.sendSongPointer.fire",
+                    //     "{youme.multiPortConnector.outputs}.events.sendSongSelect": "{that}.events.sendSongSelect.fire",
+                    //     "{youme.multiPortConnector.outputs}.events.sendStart": "{that}.events.sendStart.fire",
+                    //     "{youme.multiPortConnector.outputs}.events.sendStop": "{that}.events.sendStop.fire",
+                    //     "{youme.multiPortConnector.outputs}.events.sendSysex": "{that}.events.sendSysex.fire",
+                    //     "{youme.multiPortConnector.outputs}.events.sendTuneRequest": "{that}.events.sendTuneRequest.fire"
                     // }
                 }
             }
