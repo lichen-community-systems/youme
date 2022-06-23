@@ -17,8 +17,8 @@
 
         model: {
             connectionPorts: [],
+            portSpecs: [],
             ports: "{youme.system}.model.ports"
-
         },
 
         invokers: {
