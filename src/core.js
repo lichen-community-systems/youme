@@ -56,6 +56,14 @@
      * @property {Function} clear - A function that handles requests to clear messages in progress being sent by this port.
      */
 
+    /**
+     * An array of data representing a MIDI message, for full details, see:
+     * https://www.midi.org/specifications-old/item/table-1-summary-of-midi-message
+     *
+     * @typedef MIDIMessageData
+     * @type {Uint8Array}
+     *
+     */
     youme.requestAccess = function (sysex, software, onAccessGranted, onError) {
         if (!navigator.requestMIDIAccess) {
             var msg = "The Web MIDI API is not available. You may need to enable it in your browser's settings.";
@@ -149,7 +157,7 @@
      *
      * Convert incoming MIDI data (in bytes) to a JSON structure describing the message.
      *
-     * @param {Uint8Array} data - The raw data of the MIDI message.
+     * @param {MIDIMessageData} data - The raw data of the MIDI message.
      * @return {Object} - The corresponding message structure as a serialisable object.
      *
      */
@@ -398,7 +406,7 @@
      * Take a MIDI messageSpec object and convert it to an array of raw bytes suitable for sending to a MIDI device.
      *
      * @param {Object} midiMessage - a MIDI messageSpec object
-     * @return {Uint8Array} - an array containing the encoded MIDI message's bytes
+     * @return {MIDIMessageData} - an array containing the encoded MIDI message's bytes
      *
      */
     youme.write = function (midiMessage) {
