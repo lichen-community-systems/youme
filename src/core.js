@@ -98,22 +98,16 @@
         youme.requestAccess(false, software, wrappedSuccess, error);
     };
 
-    youme.createPortViews = function (portsArray) {
+    youme.portsToViews = function (portsArray) {
         return fluid.transform(portsArray, function (port) {
-            return {
-                id: port.id,
-                name: port.name,
-                manufacturer: port.manufacturer,
-                state: port.state,
-                connection: port.connection
-            };
+            return fluid.filterKeys(port, ["id", "name", "manufacturer", "state", "connection"]);
         });
     };
 
     youme.prettyPrintPorts = function (ports) {
         return fluid.prettyPrintJSON({
-            inputs: youme.createPortViews(ports.inputs),
-            outputs: youme.createPortViews(ports.outputs)
+            inputs: youme.portsToViews(ports.inputs),
+            outputs: youme.portsToViews(ports.outputs)
         });
     };
 
