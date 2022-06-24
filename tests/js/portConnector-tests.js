@@ -162,67 +162,65 @@
         });
     });
 
-    // TODO: Rewrite this to avoid breaking other tests.
-    // jqUnit.test("We should be able to receive messages from an input port.", function () {
-    //     var webMidiMock = youme.tests.createWebMidiMock({
-    //         inputSpecs: {
-    //             firstInput: { type: "input", id: "input1", name: "sample input 1"},
-    //             secondInput: { type: "input", id: "input2", name: "sample input 2"}
-    //         }
-    //     });
-    //
-    //     var sampleMessage = { type: "noteOn", channel: 0, velocity: 88, note: 89};
-    //
-    //     var runTests = function (that) {
-    //         jqUnit.start();
-    //         jqUnit.assertEquals("There should be one connection.", 1, youme.tests.countChildComponents(that, "youme.connection.input"));
-    //         jqUnit.stop();
-    //     };
-    //
-    //     // TODO: It seems highly suspicious that this doesn't use jqUnit.start
-    //     var portOpenListener = function () {
-    //         var access = webMidiMock.accessEventTargets[0];
-    //         var inputPort = access.inputs.get("input1");
-    //
-    //         var midiEvent = new Event("midimessage");
-    //         midiEvent.data = youme.write(sampleMessage);
-    //
-    //         jqUnit.stop();
-    //         inputPort.dispatchEvent(midiEvent);
-    //     };
-    //
-    //     // Stop to wait for `youme.system` to be ready (when runTests will be run).
-    //     jqUnit.stop();
-    //
-    //     var noteOnListener = function (midiMessage) {
-    //         jqUnit.start();
-    //         jqUnit.assertDeepEq("The received message should be as expected.", sampleMessage, midiMessage);
-    //     };
-    //
-    //     youme.test.portConnector.input({
-    //         model: {
-    //             portSpec: { id: "input1" }
-    //         },
-    //         runTests: runTests,
-    //         listeners: {
-    //             "onNoteOn.checkResults": {
-    //                 func: noteOnListener
-    //             }
-    //         },
-    //         dynamicComponents: {
-    //             connection: {
-    //                 options: {
-    //                     listeners: {
-    //                         "onPortOpen.sendMessage": {
-    //                             priority: "after:startListening",
-    //                             func: portOpenListener
-    //                         }
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     });
-    // });
+    // TODO: This test introduces instability in other test modules, which fail with no assertions.
+    jqUnit.test("We should be able to receive messages from an input port.", function () {
+        jqUnit.expect(2);
+
+        var webMidiMock = youme.tests.createWebMidiMock({
+            inputSpecs: {
+                firstInput: { type: "input", id: "input1", name: "sample input 1"},
+                secondInput: { type: "input", id: "input2", name: "sample input 2"}
+            }
+        });
+
+        var sampleMessage = { type: "noteOn", channel: 0, velocity: 88, note: 89};
+
+        var portOpenListener = function (portConnector) {
+            jqUnit.start();
+            jqUnit.assertEquals("There should be one connection.", 1, youme.tests.countChildComponents(portConnector, "youme.connection.input"));
+
+            var access = webMidiMock.accessEventTargets[0];
+            var inputPort = access.inputs.get("input1");
+
+            var midiEvent = new Event("midimessage");
+            midiEvent.data = youme.write(sampleMessage);
+
+            jqUnit.stop();
+            inputPort.dispatchEvent(midiEvent);
+        };
+
+        var noteOnListener = function (midiMessage) {
+            jqUnit.start();
+            jqUnit.assertDeepEq("The received message should be as expected.", sampleMessage, midiMessage);
+        };
+
+        // Stop to wait for port to be opened.
+        jqUnit.stop();
+
+        youme.portConnector.input({
+            model: {
+                portSpec: { id: "input1" }
+            },
+            listeners: {
+                "onNoteOn.checkResults": {
+                    func: noteOnListener
+                }
+            },
+            dynamicComponents: {
+                connection: {
+                    options: {
+                        listeners: {
+                            "onPortOpen.sendMessage": {
+                                priority: "after:startListening",
+                                func: portOpenListener,
+                                args: ["{youme.portConnector.input}"]
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
 
     jqUnit.module("Output port connector tests");
 
