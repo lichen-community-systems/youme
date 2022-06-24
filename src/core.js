@@ -134,15 +134,7 @@
      *
      */
     youme.collectPorts = function (type, access, ports) {
-        var portsForType = ports[type] = ports[type] || [],
-            iterator = access[type].values();
-
-        var next = iterator.next();
-        while (!next.done) {
-            portsForType.push(next.value);
-            next = iterator.next();
-        }
-
+        ports[type] = [...access[type].values()];
         return ports;
     };
 
