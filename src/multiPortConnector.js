@@ -18,19 +18,8 @@
         model: {
             connectionPorts: [],
             portSpecs: [],
-            ports: "{youme.system}.model.ports"
-        },
-
-        invokers: {
-            open: {
-                funcName: "youme.multiPortConnector.callAllChildInvokers",
-                args: ["{that}", "youme.connection", "open"] // that, gradeName, invokerName, invokerArgs
-            },
-
-            close: {
-                funcName: "youme.multiPortConnector.callAllChildInvokers",
-                args: ["{that}", "youme.connection", "close"] // that, gradeName, invokerName, invokerArgs
-            }
+            ports: "{youme.system}.model.ports",
+            open: true
         },
 
         components: {
@@ -45,7 +34,8 @@
                 sources: "{youme.multiPortConnector}.model.connectionPorts",
                 options: {
                     model: {
-                        port: "{source}"
+                        port: "{source}",
+                        open: "{youme.multiPortConnector}.model.open"
                     }
                 }
             }
@@ -85,6 +75,7 @@
         transaction.commit();
     };
 
+    // TODO: Figure out how to get the event relay working without using this function.
     youme.multiPortConnector.callAllChildInvokers = function (that, gradeName, invokerPath, invokerArgs) {
         var childrenToInvoke = [];
 
@@ -109,7 +100,6 @@
     fluid.defaults("youme.multiPortConnector.inputs", {
         gradeNames: ["youme.multiPortConnector", "youme.messageReceiver"],
 
-        // youme.multiPortConnector.callAllChildInvokers = function (that, gradeName, invokerName, invokerArgs)
         dynamicComponents: {
             connection: {
                 type: "youme.connection.input",

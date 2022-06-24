@@ -20,7 +20,8 @@
         gradeNames: ["fluid.modelComponent"],
 
         model: {
-            port: false
+            port: false,
+            open: false
         },
 
         events: {
@@ -29,60 +30,58 @@
             onError: null
         },
 
-        invokers: {
-            open: {
-                funcName: "youme.connection.open",
-                args: ["{that}.model.port", "{that}.events.onPortOpen.fire", "{that}.events.onError.fire"] // port, onPortOpen, onError
-            },
-
-            close: {
-                funcName: "youme.connection.close",
-                args: ["{that}.model.port", "{that}.events.onPortClose.fire", "{that}.events.onError.fire"] // port, onPortClose, onError
-            }
-        },
-
         listeners: {
             "onError.logError": {
                 funcName: "fluid.log",
                 args: [fluid.logLevel.WARN, "{arguments}.0"]
-            },
-
-            "onDestroy.close": "{that}.close"
+            }
         },
 
         modelListeners: {
+            open: {
+                funcName: "youme.connection.updateConnectionState",
+                args: ["{that}.model.port", "{that}.model.open", "{that}.events.onPortOpen.fire", "{that}.events.onPortClose.fire", "{that}.events.onError.fire"] // port, isNowOpen, onPortOpen, onPortClose, onError
+            },
             port: {
+                excludeSource: "init", // On startup, both open and port are set, so we let the open listener decide whether to open the port.
                 funcName: "youme.connection.handlePortChange",
-                args: ["{change}.oldValue", "{that}.open"]
+                args: ["{change}.oldValue", "{that}.model.port", "{that}.model.open", "{that}.events.onPortOpen.fire", "{that}.events.onPortClose.fire", "{that}.events.onError.fire"] // oldPort, newPort, isOpen, onPortOpen, onPortClose, onError
             }
         }
     });
 
-    youme.connection.handlePortChange = function (oldPort, openFn) {
+    youme.connection.handlePortChange = function (oldPort, newPort, isOpen, onPortOpen, onPortClose, onError) {
         if (oldPort) {
             oldPort.close();
         }
-        openFn();
+
+        if (newPort) {
+            youme.connection.updateConnectionState(newPort, isOpen, onPortOpen, onPortClose, onError);
+        }
+    };
+
+    youme.connection.updateConnectionState = function (port, isOpen, onPortOpen, onPortClose, onError) {
+        if (port) {
+            if (isOpen) {
+                youme.connection.open(port, onPortOpen, onError);
+            }
+            else {
+                youme.connection.close(port, onPortClose, onError);
+            }
+        }
+        else {
+            onError("Port is missing, cannot update connection state.");
+        }
     };
 
     youme.connection.open = function (port, onPortOpen, onError) {
-        if (port) {
-            var portOpenPromise = port.open();
-            portOpenPromise.then(onPortOpen, onError);
-        }
-        else {
-            onError("Port is missing, cannot open connection.");
-        }
+        var portOpenPromise = port.open();
+        portOpenPromise.then(onPortOpen, onError);
     };
 
     youme.connection.close = function (port, onPortClose, onError) {
-        if (port) {
-            var portClosePromise =  port.close();
-            portClosePromise.then(onPortClose, onError);
-        }
-        else {
-            onError("Port is missing, cannot close connection.");
-        }
+        var portClosePromise = port.close();
+        portClosePromise.then(onPortClose, onError);
     };
 
     fluid.defaults("youme.connection.input", {

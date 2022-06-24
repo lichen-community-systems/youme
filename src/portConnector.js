@@ -17,20 +17,9 @@
         },
 
         model: {
+            open: true,
             portSpec: {},
             connectionPort: null
-        },
-
-        invokers: {
-            open: {
-                funcName: "youme.portConnector.callAllChildInvokers",
-                args: ["{that}", "open"] // that, invokerName, invokerArgs
-            },
-
-            close: {
-                funcName: "youme.portConnector.callAllChildInvokers",
-                args: ["{that}", "close"] // that, invokerName, invokerArgs
-            }
         },
 
         components: {
@@ -44,7 +33,8 @@
                 type: "youme.connection",
                 options: {
                     model: {
-                        port: "{source}"
+                        port: "{source}",
+                        open: "{youme.portConnector}.model.open"
                     },
                     listeners: {
                         "onPortOpen.notifyParent": {
@@ -91,18 +81,6 @@
         }
 
         that.applier.change("connectionPort", connectionPort);
-    };
-
-    // TODO: If we use this pattern much more widely, make the grade name a variable and move this somewhere more central.
-    youme.portConnector.callAllChildInvokers = function (that, invokerName, invokerArgs) {
-        // This catches some, but not all cases in which the shadow layer doesn't exist, but "it's fine" (for now).
-        if (!fluid.isDestroyed(that)) {
-            fluid.visitComponentChildren(that, function (childComponent) {
-                if (fluid.componentHasGrade(childComponent, "youme.connection")) {
-                    childComponent[invokerName].apply(childComponent, fluid.makeArray(invokerArgs));
-                }
-            }, {}); // Empty options are required to avoid an error.
-        }
     };
 
     fluid.defaults("youme.portConnector.input", {
@@ -176,5 +154,4 @@
             }
         }
     });
-
 })(fluid);

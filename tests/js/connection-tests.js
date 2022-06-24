@@ -34,7 +34,7 @@
         );
     };
 
-    jqUnit.test("We should be able to open a connection automatically.", function () {
+    jqUnit.test("We should be able to open a connection on startup.", function () {
         var port = youme.test.connection.generateSafePort();
 
         jqUnit.stop();
@@ -51,7 +51,8 @@
 
         youme.connection({
             model: {
-                port: port
+                port: port,
+                open: true
             },
             listeners: {
                 onPortOpen: {
@@ -126,7 +127,8 @@
         var port = youme.test.connection.generateSafePort();
         var connection = youme.connection({
             model: {
-                port: port
+                port: port,
+                open: true
             }
         });
 
@@ -143,7 +145,7 @@
         });
 
         jqUnit.stop();
-        connection.close();
+        connection.applier.change("open", false);
     });
 
 
@@ -160,7 +162,8 @@
 
         var connection = youme.connection({
             model: {
-                port: false
+                port: false,
+                open: true
             },
             listeners: {
                 onPortClose: {
@@ -173,7 +176,7 @@
         connection.events.onError.addListener(onErrorListener);
 
         jqUnit.stop();
-        connection.close();
+        connection.applier.change("open", false);
     });
 
     jqUnit.test("We should be able to handle an error when closing a port.", function () {
@@ -194,7 +197,8 @@
 
         var connection = youme.connection({
             model: {
-                port: explodingPort
+                port: explodingPort,
+                open: true
             },
             listeners: {
                 onPortClose: {
@@ -208,7 +212,7 @@
         // We have to add this after startup to avoid the onError event that results from opening the port.
         connection.events.onError.addListener(onErrorListener);
 
-        connection.close();
+        connection.applier.change("open", false);
     });
 
     jqUnit.test("We should be able to receive a message from an input.", function () {
@@ -237,7 +241,8 @@
 
         youme.connection.input({
             model: {
-                port: port
+                port: port,
+                open: true
             },
             listeners: {
                 onMessage: {
@@ -267,7 +272,8 @@
 
         var connection = youme.connection.output({
             model: {
-                port: port
+                port: port,
+                open: true
             },
             listeners: {
                 onError: {
@@ -313,7 +319,8 @@
 
         var connection = youme.connection.output({
             model: {
-                port: port
+                port: port,
+                open: true
             },
             listeners: {
                 onError: {
