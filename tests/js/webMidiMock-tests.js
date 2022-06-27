@@ -485,4 +485,20 @@
         outputPort.clear();
         jqUnit.assertDeepEq("Our arguments should have been stored in the call register.", [], outputPort.calls.clear[0]);
     });
+
+    jqUnit.test("The call registry should record repeated events.", async function () {
+        jqUnit.expect(1);
+        var outputSpec = { type: "output", id: "toClear", name: "sample input" };
+        var webMidiMock = youme.tests.webMidiMock({
+            outputSpecs: {
+                toClear: outputSpec
+            }
+        });
+
+        var access = await webMidiMock.requestMIDIAccess();
+        var outputPort = access.outputs.get("toClear");
+        outputPort.clear();
+        outputPort.clear();
+        jqUnit.assertDeepEq("The call registry should have two entries.", 2, outputPort.calls.clear.length);
+    });
 })(fluid, jqUnit);
