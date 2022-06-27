@@ -342,14 +342,15 @@
                 secondInput: { type: "input", id: "input2", name: "sample input 2"}
             },
             outputSpecs: {
-                output1: { type: "output", id: "output1", name: "sample output"},
-                output2: { type: "output", id: "output2", name: "sample output"}
+                output1: { type: "output", id: "output1", name: "sample output 1"},
+                output2: { type: "output", id: "output2", name: "sample output 2"}
             }
         });
 
         var runTests = function (that) {
             jqUnit.start();
-            jqUnit.assertEquals("There should be two connections.", 2, youme.tests.countChildComponents(that, "youme.connection.output"));
+            jqUnit.assertEquals("There should be two inputs.", 2, youme.tests.countChildComponents(that.inputs, "youme.connection.input"));
+            jqUnit.assertEquals("There should be two outputs.", 2, youme.tests.countChildComponents(that.outputs, "youme.connection.output"));
 
             var access = webMidiMock.accessEventTargets[0];
             var outputPort1 = access.outputs.get("output1");
@@ -376,10 +377,16 @@
             var secondMidiEvent = new Event("midimessage");
             secondMidiEvent.data = secondMessageExpectedData;
 
-            inputPort2.dispatchEvent(secondMidiEvent);
+            jqUnit.stop();
 
-            jqUnit.assertDeepEq("A message should have been sent from the second input to the first output.", [secondMessageExpectedData], outputPort1.calls.send[1]);
-            jqUnit.assertDeepEq("A message should have been sent from the second input to the second output.", [secondMessageExpectedData], outputPort2.calls.send[1]);
+            // TODO: Discuss a cleaner pattern for "all my dynamic children are ready" scenarios.
+            // Required because we can't cleanly add a listener for the addListener mechanism on all ports.
+            setTimeout(function () {
+                jqUnit.start();
+                inputPort2.dispatchEvent(secondMidiEvent);
+                jqUnit.assertDeepEq("A message should have been sent from the second input to the first output.", [secondMessageExpectedData], outputPort1.calls.send[1]);
+                jqUnit.assertDeepEq("A message should have been sent from the second input to the second output.", [secondMessageExpectedData], outputPort2.calls.send[1]);
+            }, 100);
         };
 
         jqUnit.stop();
