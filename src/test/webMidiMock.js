@@ -106,16 +106,7 @@
     };
 
     youme.tests.webMidiMock.mapToArray = function (map) {
-        var array = [];
-        var iterator = map.values();
-
-        var next = iterator.next();
-        while (!next.done) {
-            array.push(next.value);
-            next = iterator.next();
-        }
-
-        return array;
+        return [...map];
     };
 
     youme.tests.webMidiMock.findPorts = function (inputs, outputs, portSpec) {
