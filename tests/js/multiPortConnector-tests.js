@@ -249,7 +249,7 @@
 
             var access = webMidiMock.accessEventTargets[0];
             var outputPort1 = access.outputs.get("output1");
-            var outputPort2 = access.outputs.get("output1");
+            var outputPort2 = access.outputs.get("output2");
 
             that.events.sendNoteOn.fire(sampleMessage);
             jqUnit.assertDeepEq("The message should have been sent to the first port.", [expectedData], outputPort1.calls.send[0]);
@@ -262,6 +262,129 @@
             model: {
                 portSpecs: [{ name: "sample output" }]
             },
+            runTests: runTests
+        });
+    });
+
+    jqUnit.module("Input -> Output relay tests.");
+
+    fluid.defaults("youme.test.multiPortConnector.relay", {
+        gradeNames: ["fluid.modelComponent"],
+        runTests: fluid.notImplemented,
+
+        events: {
+            inputsReady: null,
+            outputsReady: null,
+            onReady: {
+                events: {
+                    inputsReady: "inputsReady",
+                    outputsReady: "outputsReady"
+                }
+            }
+        },
+        components: {
+            inputs: {
+                type: "youme.multiPortConnector.inputs",
+                options: {
+                    model: {
+                        portSpecs: [{ name: "sample input"}]
+                    },
+                    dynamicComponents: {
+                        connection: {
+                            options: {
+                                listeners: {
+                                    "onPortOpen.notifyParent": {
+                                        priority: "after:startListening",
+                                        func: "{youme.test.multiPortConnector.relay}.events.inputsReady.fire"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    listeners: {
+                        "onMessage.sendToOutput": "{outputs}.events.sendMessage.fire"
+                    }
+                }
+            },
+            outputs: {
+                type: "youme.multiPortConnector.outputs",
+                options: {
+                    model: {
+                        portSpecs: [{ name: "sample output"}]
+                    },
+                    dynamicComponents: {
+                        connection: {
+                            options: {
+                                listeners: {
+                                    "onPortOpen.notifyParent": {
+                                        priority: "after:startListening",
+                                        func: "{youme.test.multiPortConnector.relay}.events.outputsReady.fire"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        listeners: {
+            "onReady.runTests": {
+                func: "{youme.test.multiPortConnector.relay}.options.runTests",
+                args: ["{that}"]
+            }
+        }
+    });
+
+    jqUnit.test("We should be able to connect a multiPort input to a multiPort output.", function () {
+        var webMidiMock = youme.tests.createWebMidiMock({
+            inputSpecs: {
+                firstInput: { type: "input", id: "input1", name: "sample input 1"},
+                secondInput: { type: "input", id: "input2", name: "sample input 2"}
+            },
+            outputSpecs: {
+                output1: { type: "output", id: "output1", name: "sample output"},
+                output2: { type: "output", id: "output2", name: "sample output"}
+            }
+        });
+
+        var runTests = function (that) {
+            jqUnit.start();
+            jqUnit.assertEquals("There should be two connections.", 2, youme.tests.countChildComponents(that, "youme.connection.output"));
+
+            var access = webMidiMock.accessEventTargets[0];
+            var outputPort1 = access.outputs.get("output1");
+            var outputPort2 = access.outputs.get("output2");
+
+            var inputPort1 = access.inputs.get("input1");
+            var inputPort2 = access.inputs.get("input2");
+
+            var firstSampleMessage = { type: "noteOn", channel: 0, velocity: 88, note: 89};
+            var firstMessageExpectedData = youme.write(firstSampleMessage);
+
+            var firstMidiEvent = new Event("midimessage");
+            firstMidiEvent.data = firstMessageExpectedData;
+
+            inputPort1.dispatchEvent(firstMidiEvent);
+
+            jqUnit.assertDeepEq("A message should have been sent from the first input to the first output.", [firstMessageExpectedData], outputPort1.calls.send[0]);
+            jqUnit.assertDeepEq("A message should have been sent from the first input to the second output.", [firstMessageExpectedData], outputPort2.calls.send[0]);
+
+
+            var secondSampleMessage = { type: "noteOff", channel: 0, velocity: 0, note: 89};
+            var secondMessageExpectedData = youme.write(secondSampleMessage);
+
+            var secondMidiEvent = new Event("midimessage");
+            secondMidiEvent.data = secondMessageExpectedData;
+
+            inputPort2.dispatchEvent(secondMidiEvent);
+
+            jqUnit.assertDeepEq("A message should have been sent from the second input to the first output.", [secondMessageExpectedData], outputPort1.calls.send[1]);
+            jqUnit.assertDeepEq("A message should have been sent from the second input to the second output.", [secondMessageExpectedData], outputPort2.calls.send[1]);
+        };
+
+        jqUnit.stop();
+
+        youme.test.multiPortConnector.relay({
             runTests: runTests
         });
     });
