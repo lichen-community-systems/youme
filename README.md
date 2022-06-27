@@ -1,4 +1,4 @@
-# fluid-midi
+# youme
 
 This package models the [WebMIDI API](https://developer.mozilla.org/en-US/docs/Web/API/Web_MIDI_API) as a series of
 [Fluid components](https://fluidproject.org/infusion.html).

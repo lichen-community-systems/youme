@@ -6,7 +6,7 @@
  */
 
 /* eslint-env node */
-// The main file that is included when you run `require("fluid-midi")`.
+// The main file that is included when you run `require("youme")`.
 "use strict";
 var fluid = require("infusion");
 
@@ -16,5 +16,5 @@ require("./src/connection");
 require("./src/portConnector");
 require("./src/system");
 
-// Register our content so it can be used with calls like fluid.module.resolvePath("%fluid-midi/path/to/content.js");
+// Register our content so it can be used with calls like fluid.module.resolvePath("%youme/path/to/content.js");
 fluid.module.register("youme", __dirname, require);
