@@ -18,6 +18,10 @@
         "json5": [
             "./*.json5"
         ],
+        "css": [
+            "./src/css/*.css",
+            "./demos/css/*.css"
+        ],
         "other": [
             "./.*",
             "!./package-lock.json",

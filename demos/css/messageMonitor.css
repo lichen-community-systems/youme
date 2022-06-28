@@ -6,7 +6,7 @@
  */
 
 body {
-    padding: 2.0rem;
+    padding: 2rem;
 }
 
 .message-monitor {
@@ -16,7 +16,7 @@ body {
 .message-monitor-inner-container {
     display: flex;
     flex-direction: column;
-    gap: 2.0rem;
+    gap: 2rem;
     width: 100%;
 }
 

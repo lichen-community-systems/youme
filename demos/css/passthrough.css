@@ -6,7 +6,7 @@
  */
 
 body {
-    padding: 2.0rem;
+    padding: 2rem;
 }
 
 .passthrough {
@@ -16,7 +16,7 @@ body {
 .passthrough-inner-container {
     display: flex;
     flex-direction: row;
-    gap: 2.0rem;
+    gap: 2rem;
     width: 100%;
 }
 
