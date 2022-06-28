@@ -7,7 +7,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>"Passthrough" Demo.</title>
+    <title>"Message Monitor" Demo.</title>
 
     <script src="../node_modules/infusion/dist/infusion-all.js"></script>
 
@@ -15,27 +15,27 @@
     <script src="../src/system.js"></script>
     <script src="../src/messageEventHolders.js"></script>
     <script src="../src/connection.js"></script>
-    <script src="../src/portConnector.js"></script>
+    <script src="../src/multiPortConnector.js"></script>
 
     <script src="../src/ui/templateRenderer.js"></script>
-    <script src="../src/ui/selectBox.js"></script>
-    <script src="../src/ui/portSelectorView.js"></script>
+    <script src="../src/ui/multiSelectBox.js"></script>
+    <script src="../src/ui/multiPortSelectorView.js"></script>
     <script src="../src/ui/svgIcon.js"></script>
 
-    <script src="./js/passthrough.js"></script>
+    <script src="./js/messageMonitor.js"></script>
 
     <link type="text/css" rel="stylesheet" href="../src/css/youme.css"/>
-    <link type="text/css" rel="stylesheet" href="./css/passthrough.css"/>
+    <link type="text/css" rel="stylesheet" href="./css/messageMonitor.css"/>
 </head>
 <body>
-<h3>"Passthrough" Demo</h3>
+<h3>"Message Monitor" Demo</h3>
 
-<p>All MIDI messages received from the input will be relayed to the output.</p>
+<p>All MIDI messages received from the input(s) will be displayed onscreen.</p>
 
-<div class="passthrough"></div>
+<div class="message-monitor"></div>
 
 <script>
-    var passthrough = youme.demos.passthrough(".passthrough");
+    var messageMonitor = youme.demos.messageMonitor(".message-monitor");
 </script>
 </body>
 </html>
