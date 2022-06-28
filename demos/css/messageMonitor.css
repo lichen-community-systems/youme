@@ -25,6 +25,7 @@ body {
     display: flex;
     flex-direction: column-reverse;
     height: 15rem;
+    overflow-x: auto;
     overflow-y: scroll;
 }
 
