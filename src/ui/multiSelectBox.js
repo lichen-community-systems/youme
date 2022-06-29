@@ -86,7 +86,7 @@
     youme.multiSelectBox.renderOptions = function (that, itemTemplate) {
         var optionsContent = "";
         fluid.each(that.model.optionItems, function (optionItem) {
-            var selected = that.model.selectedItemIds.indexOf(optionItem.id) !== -1 ? "selected" : "";
+            var selected = that.model.selectedItemIds.includes(optionItem.id) ? "selected" : "";
             var mergedItemVariables = fluid.extend({}, optionItem, { selected: selected});
             optionsContent += fluid.stringTemplate(itemTemplate, mergedItemVariables);
         });
