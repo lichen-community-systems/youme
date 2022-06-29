@@ -85,8 +85,8 @@
     youme.getPorts = function (access) {
         var ports = {};
 
-        youme.collectPorts("inputs", access, ports);
-        youme.collectPorts("outputs", access, ports);
+        ports.inputs  = [...access.inputs.values()];
+        ports.outputs = [...access.outputs.values()];
 
         return ports;
     };
@@ -125,21 +125,6 @@
 
         youme.requestPorts(success, error, software);
     };
-
-    /**
-     * Convert an object that presents a map of `inputs` and `outputs` into an array of MIDIPort objects.
-     *
-     * @param {"inputs"|"outputs"} type - The type of inputs, only "inputs" and "outputs" are supported.
-     * @param {MIDIAccess} access - The `MIDIAccess` object provided by the WebMIDI API.
-     * @param {Map<MIDIPort>} ports - A read-only map-like structure containing the available ports for `type`.
-     * @return {Array<MidiPort>} - An array of `MIDIPort` objects.
-     *
-     */
-    youme.collectPorts = function (type, access, ports) {
-        ports[type] = [...access[type].values()];
-        return ports;
-    };
-
 
     /**
      *
