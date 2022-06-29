@@ -116,7 +116,6 @@
             connection: {
                 type: "youme.connection.output",
                 options: {
-                    // If use this, we only ever hear from one input, where the relay approach allows it.
                     listeners: {
                         "{youme.multiPortConnector.outputs}.events.sendActiveSense": "{that}.events.sendActiveSense.fire",
                         "{youme.multiPortConnector.outputs}.events.sendAftertouch": "{that}.events.sendAftertouch.fire",
