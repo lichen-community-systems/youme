@@ -9,17 +9,19 @@
     var youme = fluid.registerNamespace("youme");
 
     // TODO: Add support for matching based on portSpec rather than just id.
-    // TODO: Add support for "none"
+    // TODO: Disentangle the desired port spec from the selected port spec.
     // TODO: Add support for virtual ports.
     fluid.defaults("youme.portSelectorView", {
         gradeNames: ["fluid.viewComponent"],
 
         selectBoxLabel: "MIDI Port:",
 
+        desiredPortSpec: {},
+
         model: {
-            portSpec: {
-                id: false
-            }
+            selectedPortId: false,
+            ports: [],
+            portSpec: {}
         },
 
         components: {
@@ -41,12 +43,33 @@
                 options: {
                     model: {
                         label: "{youme.portSelectorView}.options.selectBoxLabel",
-                        selectedItemId: "{youme.portSelectorView}.model.portSpec.id"
+                        selectedItemId: "{youme.portSelectorView}.model.selectedPortId",
+                        optionItems: "{youme.portSelectorView}.model.ports"
                     }
                 }
             }
+        },
+
+        modelListeners: {
+            ports: {
+                funcName: "youme.portSelectorView.findDesiredPort",
+                args: ["{that}"]
+            },
+            selectedPortId: {
+                funcName: "youme.portSelectorView.updatePortSpec",
+                args: ["{that}"]
+            }
         }
     });
+
+    youme.portSelectorView.findDesiredPort = function (that) {
+        if (that.options.desiredPortSpec && !that.model.selectedPortId) {
+            var foundPorts = youme.findPorts(that.model.ports, that.options.desiredPortSpec);
+            if (foundPorts.length === 1) {
+                that.applier.change("selectedPortId", foundPorts[0].id);
+            }
+        }
+    };
 
     youme.portSelectorView.updatePortSpec = function (that) {
         var transaction = that.applier.initiate();
@@ -59,6 +82,10 @@
         gradeNames: ["youme.portSelectorView", "youme.messageReceiver"],
 
         selectBoxLabel: "MIDI Input:",
+
+        model: {
+            ports: "{youme.system}.model.ports.inputs"
+        },
 
         components: {
             portConnector: {
@@ -85,16 +112,6 @@
                         "onTuneRequest.relay": "{youme.portSelectorView.input}.events.onTuneRequest.fire"
                     }
                 }
-            },
-
-            selectBox: {
-                type: "youme.selectBox",
-                container: "{that}.container",
-                options: {
-                    model: {
-                        optionItems: "{youme.system}.model.ports.inputs"
-                    }
-                }
             }
         }
     });
@@ -103,6 +120,10 @@
         gradeNames: ["youme.portSelectorView", "youme.messageSender"],
 
         selectBoxLabel: "MIDI Output:",
+
+        model: {
+            ports: "{youme.system}.model.ports.outputs"
+        },
 
         components: {
             portConnector: {
@@ -127,14 +148,6 @@
                         sendStop: "{youme.portSelectorView.output}.events.sendStop",
                         sendSysex: "{youme.portSelectorView.output}.events.sendSysex",
                         sendTuneRequest: "{youme.portSelectorView.output}.events.sendTuneRequest"
-                    }
-                }
-            },
-
-            selectBox: {
-                options: {
-                    model: {
-                        optionItems: "{youme.system}.model.ports.outputs"
                     }
                 }
             }

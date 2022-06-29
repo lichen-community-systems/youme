@@ -22,10 +22,8 @@
                 type: "youme.portSelectorView.input",
                 container: "{that}.dom.input",
                 options: {
-                    model: {
-                        portSpec: {
-                            name: "Launchpad Pro .+ (MIDI|Standalone Port)"
-                        }
+                    desiredPortSpec: {
+                        name: "Launchpad Pro .+ (MIDI|Standalone Port)"
                     },
                     listeners: {
                         "onMessage.sendToOutput": "{output}.events.sendMessage.fire"
@@ -36,10 +34,8 @@
                 type: "youme.portSelectorView.output",
                 container: "{that}.dom.output",
                 options: {
-                    model: {
-                        portSpec: {
-                            name: "IAC Driver Bus 1"
-                        }
+                    desiredPortSpec: {
+                        name: "IAC Driver Bus 1"
                     }
                 }
             }

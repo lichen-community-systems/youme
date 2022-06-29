@@ -9,12 +9,17 @@
     var youme = fluid.registerNamespace("youme");
 
     // TODO: Add support for virtual ports.
+    // TODO: Add support for matching based on portSpecs rather than just id.
+    // TODO: Disentangle the desired port spec from the selected port spec.
     fluid.defaults("youme.multiPortSelectorView", {
         gradeNames: ["fluid.viewComponent"],
 
         selectBoxLabel: "MIDI Port:",
 
+        desiredPortSpecs: [],
+
         model: {
+            ports: [],
             selectedPortIds: [],
             portSpecs: []
         },
@@ -38,19 +43,46 @@
                 options: {
                     model: {
                         label: "{youme.multiPortSelectorView}.options.selectBoxLabel",
-                        selectedItemIds: "{youme.multiPortSelectorView}.model.selectedPortIds"
+                        selectedItemIds: "{youme.multiPortSelectorView}.model.selectedPortIds",
+                        optionItems: "{youme.multiPortSelectorView}.model.ports"
                     }
                 }
             }
         },
 
         modelListeners: {
+            ports: {
+                funcName: "youme.multiPortSelectorView.findDesiredPorts",
+                args: ["{that}"]
+            },
             selectedPortIds: {
                 funcName: "youme.multiPortSelectorView.updatePortSpecs",
                 args: ["{that}"]
             }
         }
     });
+
+    youme.multiPortSelectorView.findDesiredPorts = function (that) {
+        var foundPortIdMap = {};
+
+        fluid.each(that.model.selectedPortIds, function (selectedPortId) {
+            foundPortIdMap[selectedPortId] = true;
+        });
+
+        fluid.each(that.options.desiredPortSpecs, function (desiredPortSpec) {
+            var foundPorts = youme.findPorts(that.model.ports, desiredPortSpec);
+            fluid.each(foundPorts, function (foundPort) {
+                foundPortIdMap[foundPort.id] = true;
+            });
+        });
+
+        var uniqueFoundIds = Object.keys(foundPortIdMap);
+
+        var transaction = that.applier.initiate();
+        transaction.fireChangeRequest({ path: "selectedPortIds", type: "DELETE"});
+        transaction.fireChangeRequest({ path: "selectedPortIds", value: uniqueFoundIds});
+        transaction.commit();
+    };
 
     youme.multiPortSelectorView.updatePortSpecs = function (that) {
         var updatedPortSpecs = [];
@@ -68,6 +100,10 @@
         gradeNames: ["youme.multiPortSelectorView", "youme.messageReceiver"],
 
         selectBoxLabel: "MIDI Inputs:",
+
+        model: {
+            ports: "{youme.system}.model.ports.inputs"
+        },
 
         components: {
             portConnector: {
@@ -94,16 +130,6 @@
                         "onTuneRequest.relay": "{youme.multiPortSelectorView.inputs}.events.onTuneRequest.fire"
                     }
                 }
-            },
-
-            selectBox: {
-                type: "youme.multiSelectBox",
-                container: "{that}.container",
-                options: {
-                    model: {
-                        optionItems: "{youme.system}.model.ports.inputs"
-                    }
-                }
             }
         }
     });
@@ -112,6 +138,10 @@
         gradeNames: ["youme.multiPortSelectorView", "youme.messageSender"],
 
         selectBoxLabel: "MIDI Outputs:",
+
+        model: {
+            ports: "{youme.system}.model.ports.outputs"
+        },
 
         components: {
             portConnector: {
@@ -136,14 +166,6 @@
                         sendStop: "{youme.multiPortSelectorView.outputs}.events.sendStop",
                         sendSysex: "{youme.multiPortSelectorView.outputs}.events.sendSysex",
                         sendTuneRequest: "{youme.multiPortSelectorView.outputs}.events.sendTuneRequest"
-                    }
-                }
-            },
-
-            selectBox: {
-                options: {
-                    model: {
-                        optionItems: "{youme.system}.model.ports.outputs"
                     }
                 }
             }

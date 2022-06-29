@@ -98,11 +98,10 @@ used directly.  Instead, you should use `youme.portSelectorView.input` or `youme
 
 In addition to the options supported by `youme.templateRenderer`, this component supports the following options:
 
-| Name                   | Type         | Description                                                                                            | Default          |
-|------------------------|--------------|--------------------------------------------------------------------------------------------------------|------------------|
-| `selectBoxLabel`       | `{String}`   | The onscreen label (heading) for the select box.                                                       | `"MIDI Port:"`   |
-| `model.selectedPortId` | `{String}`   | The ID of the selected ports.                                                                          | `false`          |
-| `model.portSpec`       | `{PortSpec}` | A `PortSpec` object (see above) describing the desired port.  Will be selected automatically if found. | An empty object. |
+| Name                   | Type         | Description                                                                                                    | Default          |
+|------------------------|--------------|----------------------------------------------------------------------------------------------------------------|------------------|
+| `desiredPortSpec`      | `{PortSpec}` | A `PortSpec` object (see above) describing the desired default port.  Will be selected automatically if found. | An empty object. |
+| `selectBoxLabel`       | `{String}`   | The onscreen label (heading) for the select box.                                                               | `"MIDI Port:"`   |
 
 ## `youme.portSelectorView.input`
 
@@ -141,11 +140,10 @@ generally not be used directly.  Instead, you should use `youme.multiPortSelecto
 
 In addition to the options supported by `youme.templateRenderer`, this component supports the following options:
 
-| Name                    | Type                | Description                                                                                                                   | Default         |
-|-------------------------|---------------------|-------------------------------------------------------------------------------------------------------------------------------|-----------------|
-| `selectBoxLabel`        | `{String}`          | The onscreen label (heading) for the select box.                                                                              | `"MIDI Port:"`  |
-| `model.selectedPortIds` | `{Array<String>}`   | The IDs of the selected ports.                                                                                                | An empty array. |
-| `model.portSpecs`       | `{Array<PortSpec>}` | An array of one or more `PortSpec` objects (see above) describing the desired port.  Will be selected automatically if found. | An empty array. |
+| Name               | Type                | Description                                                                                                                   | Default         |
+|--------------------|---------------------|-------------------------------------------------------------------------------------------------------------------------------|-----------------|
+| `desiredPortSpecs` | `{Array<PortSpec>}` | An array of one or more `PortSpec` objects (see above) describing the desired port.  Will be selected automatically if found. | An empty array. |
+| `selectBoxLabel`   | `{String}`          | The onscreen label (heading) for the select box.                                                                              | `"MIDI Port:"`  |
 
 ## `youme.multiPortSelectorView.inputs`
 

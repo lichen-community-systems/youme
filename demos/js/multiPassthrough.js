@@ -22,11 +22,10 @@
                 type: "youme.multiPortSelectorView.inputs",
                 container: "{that}.dom.inputs",
                 options: {
-                    model: {
-                        portSpecs: [{
-                            name: "Launchpad Pro .+ (MIDI|Standalone Port)"
-                        }]
-                    },
+                    desiredPortSpecs: [
+                        { name: "Launchpad Pro .+ (MIDI|Standalone Port)" },
+                        { name: "nanoPAD2"}
+                    ],
                     listeners: {
                         "onMessage.sendToOutput": "{outputs}.events.sendMessage.fire"
                     }
@@ -36,11 +35,10 @@
                 type: "youme.multiPortSelectorView.outputs",
                 container: "{that}.dom.outputs",
                 options: {
-                    model: {
-                        portSpecs: [{
-                            name: "IAC Driver Bus 1"
-                        }]
-                    }
+                    desiredPortSpecs: [
+                        { name: "IAC Driver Bus 1" },
+                        { name: "MIDI Monitor"}
+                    ]
                 }
             }
         }
