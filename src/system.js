@@ -103,8 +103,8 @@
             },
 
             "onPortsAvailable.modelizePorts": {
-                funcName: "youme.system.modelizePorts",
-                args: ["{that}.applier", "{arguments}.0"]
+                funcName: "fluid.replaceModelValue",
+                args: ["{that}.applier", "ports", "{arguments}.0"]
             },
 
             "onDestroy.stopListening": {
@@ -121,14 +121,6 @@
     youme.system.refreshPorts = function (access, onPortsAvailable) {
         var ports = youme.getPorts(access);
         onPortsAvailable(ports);
-    };
-
-    youme.system.modelizePorts = function (applier, ports) {
-        // Delete the entire existing collection of ports and replace with the current member variable.
-        var transaction = applier.initiate();
-        transaction.fireChangeRequest({ path: "ports", type: "DELETE" });
-        transaction.fireChangeRequest({ path: "ports", value: ports });
-        transaction.commit();
     };
 
     youme.system.listenForPortChanges = function (that, access) {

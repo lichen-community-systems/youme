@@ -72,10 +72,7 @@
     };
 
     youme.portSelectorView.updatePortSpec = function (that) {
-        var transaction = that.applier.initiate();
-        transaction.fireChangeRequest({ path: "portSpec", type: "DELETE" });
-        transaction.fireChangeRequest({ path: "portSpec", value: { id: that.model.selectedPortId }});
-        transaction.commit();
+        fluid.replaceModelValue(that.applier, "portSpec", { id: that.model.selectedPortId });
     };
 
     fluid.defaults("youme.portSelectorView.input", {

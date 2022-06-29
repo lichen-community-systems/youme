@@ -78,10 +78,7 @@
 
         var uniqueFoundIds = Object.keys(foundPortIdMap);
 
-        var transaction = that.applier.initiate();
-        transaction.fireChangeRequest({ path: "selectedPortIds", type: "DELETE"});
-        transaction.fireChangeRequest({ path: "selectedPortIds", value: uniqueFoundIds});
-        transaction.commit();
+        fluid.replaceModelValue(that.applier, "selectedPortIds", uniqueFoundIds);
     };
 
     youme.multiPortSelectorView.updatePortSpecs = function (that) {
@@ -90,10 +87,7 @@
             updatedPortSpecs.push({ id: selectedPortId});
         });
 
-        var transaction = that.applier.initiate();
-        transaction.fireChangeRequest({ path: "portSpecs", type: "DELETE" });
-        transaction.fireChangeRequest({ path: "portSpecs", value: updatedPortSpecs});
-        transaction.commit();
+        fluid.replaceModelValue(that.applier, "portSpecs", updatedPortSpecs);
     };
 
     fluid.defaults("youme.multiPortSelectorView.inputs", {

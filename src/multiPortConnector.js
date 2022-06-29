@@ -69,10 +69,7 @@
         });
         var connectionPorts = Object.values(connectionPortsById);
 
-        var transaction = that.applier.initiate();
-        transaction.fireChangeRequest({ path: "connectionPorts", type: "DELETE" });
-        transaction.fireChangeRequest({ path: "connectionPorts", value: connectionPorts});
-        transaction.commit();
+        fluid.replaceModelValue(that.applier, "connectionPorts", connectionPorts);
     };
 
     fluid.defaults("youme.multiPortConnector.inputs", {

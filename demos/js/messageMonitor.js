@@ -74,8 +74,8 @@
 
         invokers: {
             resetLog: {
-                funcName: "youme.demos.messageMonitor.resetLog",
-                args: ["{that}"]
+                funcName: "fluid.replaceModelValue",
+                args: ["{that}.applier", "loggedMessages", []]
             }
         },
 
@@ -150,12 +150,4 @@
         var index = messageMonitor.model.loggedMessages.length;
         messageMonitor.applier.change(["loggedMessages", index], toLog);
     };
-
-    youme.demos.messageMonitor.resetLog = function (messageMonitor) {
-        var transaction = messageMonitor.applier.initiate();
-        transaction.fireChangeRequest({ path: "loggedMessages", type: "DELETE" });
-        transaction.fireChangeRequest({ path: "loggedMessages", value: [] });
-        transaction.commit();
-    };
-
 })(fluid);
