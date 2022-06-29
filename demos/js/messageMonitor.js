@@ -56,6 +56,15 @@
         }
     };
 
+    fluid.defaults("youme.demos.messageMonitor.logRelay", {
+        listeners: {
+            "onMessage.log": {
+                funcName: "youme.demos.messageMonitor.logMessage",
+                args: ["{youme.demos.messageMonitor}", "{that}", "{arguments}.0"] // messageMonitor, connection, message
+            }
+        }
+    });
+
     fluid.defaults("youme.demos.messageMonitor", {
         gradeNames: ["youme.templateRenderer"],
         markup: {
@@ -79,35 +88,19 @@
             }
         },
 
+        distributeOptions: {
+            record: "youme.demos.messageMonitor.logRelay",
+            target: "{that youme.connection}.options.gradeNames"
+        },
+
         components: {
             inputs: {
                 type: "youme.multiPortSelectorView.inputs",
                 container: "{that}.dom.inputs",
                 options: {
-                    model: {
-                        portSpecs: [{
-                            name: "Launchpad Pro .+ (MIDI|Standalone Port)"
-                        }]
-                    },
-                    components: {
-                        portConnector: {
-                            options: {
-                                dynamicComponents: {
-                                    connection: {
-                                        options: {
-                                            // Listen at this level so that we can determine which port/device sent the message.
-                                            listeners: {
-                                                "onMessage.log": {
-                                                    funcName: "youme.demos.messageMonitor.logMessage",
-                                                    args: ["{youme.demos.messageMonitor}", "{that}", "{arguments}.0"] // messageMonitor, connection, message
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    desiredPortSpecs: [{
+                        name: "Launchpad Pro .+ (MIDI|Standalone Port)"
+                    }]
                 }
             },
             log: {
