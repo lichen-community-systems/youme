@@ -78,6 +78,8 @@
         });
 
         p.then(onAccessGranted, onError);
+
+        return p;
     };
 
     youme.getPorts = function (access) {
