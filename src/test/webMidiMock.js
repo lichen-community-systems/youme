@@ -228,7 +228,7 @@
 
     /**
      *
-     * Generate a mock of a port from a port definition.  See:
+     * Generate a mock of a port from a port definition. See:
      *
      * https://developer.mozilla.org/en-US/docs/Web/API/MIDIPort
      * https://developer.mozilla.org/en-US/docs/Web/API/MIDIInput

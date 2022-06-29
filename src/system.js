@@ -15,7 +15,7 @@
      *
      * https://docs.fluidproject.org/infusion/development/contexts#global-components-fluidresolveroot-and-fluidresolverootsingle
      *
-     * Unfortunately this doesn't work as a named sub-component.  We could instantiate an instance globally like the old
+     * Unfortunately this doesn't work as a named sub-component. We could instantiate an instance globally like the old
      * `flock.enviro`.
      *
      */

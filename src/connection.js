@@ -11,7 +11,7 @@
 
     /**
      *
-     * A MIDI Connection represents a connection to a single input or output port.  Unless you are completing the wiring
+     * A MIDI Connection represents a connection to a single input or output port. Unless you are completing the wiring
      * yourself, you should not use this directly, but should use `youme.connection.input` or `youme.connection.output`
      * instead.
      *

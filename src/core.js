@@ -518,7 +518,7 @@
      *
      * @param {Number} value - A 14-bit number to convert
      * @param {Unit8TypedArray} array - An array to write the value to.
-     * @param {Integer} offset - The optional offset in the array to start writing at.  Defaults to 0.
+     * @param {Integer} offset - The optional offset in the array to start writing at. Defaults to 0.
      *
      */
     // Unsupported, non-API function.

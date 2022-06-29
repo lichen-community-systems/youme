@@ -13,7 +13,7 @@
 
     fluid.registerNamespace("youme.test.portConnector");
 
-    // The `youme.system` component needs to complete its own setup for ports to be visible elsewhere.  Since this is
+    // The `youme.system` component needs to complete its own setup for ports to be visible elsewhere. Since this is
     // the only sequence of asynchronous events we need to occur before we can run our tests, we handle it using a
     // single listener rather than full Fluid IoC tests.
     fluid.defaults("youme.test.portConnector.testRunner", {
