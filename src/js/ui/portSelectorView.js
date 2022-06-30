@@ -8,8 +8,6 @@
     "use strict";
     var youme = fluid.registerNamespace("youme");
 
-    // TODO: Add support for matching based on portSpec rather than just id.
-    // TODO: Disentangle the desired port spec from the selected port spec.
     // TODO: Add support for virtual ports.
     fluid.defaults("youme.portSelectorView", {
         gradeNames: ["fluid.viewComponent"],
