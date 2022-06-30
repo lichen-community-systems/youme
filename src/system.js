@@ -19,7 +19,6 @@
      * `flock.enviro`.
      *
      */
-    // TODO: Try 4.1.0-dev.20220506T100231Z.d681cae69.FLUID-6728
 
     /**
      *
@@ -28,36 +27,34 @@
      *
      */
     fluid.defaults("youme.system", {
-        gradeNames: ["fluid.modelComponent"],
+        gradeNames: ["fluid.modelComponent", "fluid.resourceLoader"],
 
         // Since Chrome always prompts regardless, we ask for permission to send sysex by default.
         // https://chromestatus.com/feature/5138066234671104
         sysex: true,
         software: true,
 
-        members: {
-            access: undefined
+        resources: {
+            access: {
+                promiseFunc: "{that}.requestAccess"
+            }
         },
 
         model: {
+            access: "{that}.resources.access.parsed",
             ports: { inputs: {}, outputs: {} }
         },
 
         invokers: {
             requestAccess: {
-                funcName: "youme.requestAccess",
-                args: [
-                    "{that}.options.sysex",
-                    "{that}.options.software",
-                    "{that}.events.onAccessGranted.fire",
-                    "{that}.events.onAccessError.fire"
-                ]
+                funcName: "youme.system.requestAccess",
+                args: ["{that}"]
             },
 
             refreshPorts: {
                 funcName: "youme.system.refreshPorts",
                 args: [
-                    "{that}.access",
+                    "{that}.model.access",
                     "{that}.events.onPortsAvailable.fire"
                 ]
             }
@@ -66,37 +63,10 @@
         events: {
             onAccessGranted: null,
             onAccessError: null,
-            onReady: null,
             onPortsAvailable: null
         },
 
         listeners: {
-            "onCreate.requestAccess": {
-                func: "{that}.requestAccess"
-            },
-
-            "onAccessGranted.setAccess": {
-                func: "youme.system.setAccess",
-                args: ["{that}", "{arguments}.0"]
-            },
-
-            "onAccessGranted.refreshPorts": {
-                priority: "after:setAccess",
-                func: "{that}.refreshPorts"
-            },
-
-            "onAccessGranted.bindAutoRefresh": {
-                priority: "after:refreshPorts",
-                funcName: "youme.system.listenForPortChanges",
-                args: ["{that}", "{arguments}.0"] // accessObject
-            },
-
-            "onAccessGranted.fireOnReady": {
-                priority: "after:bindAutoRefresh",
-                func: "{that}.events.onReady.fire",
-                args: ["{that}.ports)"]
-            },
-
             "onAccessError.logError": {
                 funcName: "fluid.log",
                 args: [fluid.logLevel.WARN, "MIDI Access Error: ", "{arguments}.0"]
@@ -109,22 +79,37 @@
 
             "onDestroy.stopListening": {
                 funcName: "youme.system.stopListeningForPortChanges",
-                args: ["{that}.access"] // accessObject
+                args: ["{that}.model.access"] // accessObject
             }
         }
     });
 
-    youme.system.setAccess = function (that, access) {
-        that.access = access;
+
+    // A wrapper for youme.requestAccess that waits to satisfy the promise until additional startup steps are complete.
+    youme.system.requestAccess = function (that) {
+        // We use a wrapped promise to ensure that our followup tasks are completed before any events are fired.
+        var wrappedPromise = fluid.promise();
+
+        try {
+            var p = youme.requestAccess(that.options.sysex, that.options.software, that.events.onAccessGranted.fire, that.events.onAccessError.fire);
+
+            p.then(function (access) {
+                that.applier.change("access", access);
+                that.refreshPorts();
+                access.onstatechange = that.refreshPorts;
+                wrappedPromise.resolve();
+            }, wrappedPromise.reject);
+        }
+        catch (error) {
+            wrappedPromise.reject(error);
+        }
+
+        return wrappedPromise;
     };
 
     youme.system.refreshPorts = function (access, onPortsAvailable) {
         var ports = youme.getPorts(access);
         onPortsAvailable(ports);
-    };
-
-    youme.system.listenForPortChanges = function (that, access) {
-        access.onstatechange = that.refreshPorts;
     };
 
     youme.system.stopListeningForPortChanges = function (access) {

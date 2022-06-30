@@ -62,24 +62,27 @@
      *
      * @typedef MIDIMessageData
      * @type {Uint8Array}
-     *
+     * @return {Promise} - A promise that will resolve when access is granted or reject otherwise.
      */
     youme.requestAccess = function (sysex, software, onAccessGranted, onError) {
+        // We wrap this so that we can consistently return a promise.
+        var wrappedPromise = fluid.promise();
+        wrappedPromise.then(onAccessGranted, onError);
+
         if (!navigator.requestMIDIAccess) {
             var msg = "The Web MIDI API is not available. You may need to enable it in your browser's settings.";
             fluid.log(fluid.logLevel.WARN, msg);
-            onError(msg);
-            return;
+            wrappedPromise.reject(msg);
+        }
+        else {
+            var p = navigator.requestMIDIAccess({
+                sysex: sysex,
+                software: software
+            });
+            fluid.promise.follow(p, wrappedPromise);
         }
 
-        var p = navigator.requestMIDIAccess({
-            sysex: sysex,
-            software: software
-        });
-
-        p.then(onAccessGranted, onError);
-
-        return p;
+        return wrappedPromise;
     };
 
     youme.getPorts = function (access) {
@@ -91,39 +94,10 @@
         return ports;
     };
 
-    youme.requestPorts = function (success, error, software) {
-        function wrappedSuccess(access) {
-            var ports = youme.getPorts(access);
-            success(ports);
-        }
-
-        youme.requestAccess(false, software, wrappedSuccess, error);
-    };
-
     youme.portsToViews = function (portsArray) {
         return fluid.transform(portsArray, function (port) {
             return fluid.filterKeys(port, ["id", "name", "manufacturer", "state", "connection"]);
         });
-    };
-
-    youme.prettyPrintPorts = function (ports) {
-        return fluid.prettyPrintJSON({
-            inputs: youme.portsToViews(ports.inputs),
-            outputs: youme.portsToViews(ports.outputs)
-        });
-    };
-
-    youme.logPorts = function (software) {
-        function success(ports) {
-            var printed = youme.prettyPrintPorts(ports);
-            console.log(printed); // eslint-disable-line no-console
-        }
-
-        function error(err) {
-            console.log(err); // eslint-disable-line no-console
-        }
-
-        youme.requestPorts(success, error, software);
     };
 
     /**

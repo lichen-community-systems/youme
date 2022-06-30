@@ -13,36 +13,11 @@
 
     fluid.registerNamespace("youme.test.portConnector");
 
-    // The `youme.system` component needs to complete its own setup for ports to be visible elsewhere. Since this is
-    // the only sequence of asynchronous events we need to occur before we can run our tests, we handle it using a
-    // single listener rather than full Fluid IoC tests.
-    fluid.defaults("youme.test.portConnector.testRunner", {
-        runTests: fluid.notImplemented,
-        components: {
-            midiSystem: {
-                options: {
-                    listeners: {
-                        "onReady.runTests": {
-                            func: "{youme.test.portConnector.testRunner}.options.runTests",
-                            args: ["{youme.portConnector}"]
-                        }
-                    }
-                }
-            }
-        }
-    });
-
-    fluid.defaults("youme.test.portConnector.input", {
-        gradeNames: ["youme.portConnector.input", "youme.test.portConnector.testRunner"]
-    });
-
-    fluid.defaults("youme.test.portConnector.output", {
-        gradeNames: ["youme.portConnector.output", "youme.test.portConnector.testRunner"]
-    });
-
     jqUnit.module("Input port connector tests");
 
     jqUnit.test("We should be able to connect to an input by changing the selected port ID.", function () {
+        jqUnit.expect(2);
+
         youme.tests.createWebMidiMock({
             inputSpecs: {
                 firstInput: { type: "input", id: "input1", name: "sample input 1"},
@@ -50,18 +25,26 @@
             }
         });
 
-        jqUnit.stop();
-
-        var runTests = function (that) {
+        var accessGrantedListener = function () {
             jqUnit.start();
             jqUnit.assertEquals("There should be no connection.", 0, youme.tests.countChildComponents(that, "youme.connection.input"));
 
+            jqUnit.stop();
             that.applier.change("portSpec", { id: "input2" } );
+        };
 
+        var portOpenListener = function () {
+            jqUnit.start();
             jqUnit.assertEquals("There should be one connection.", 1, youme.tests.countChildComponents(that, "youme.connection.input"));
         };
 
-        youme.test.portConnector.input({ runTests: runTests });
+        jqUnit.stop();
+        var that = youme.portConnector.input({
+            listeners: {
+                onAccessGranted: accessGrantedListener,
+                onPortOpen: portOpenListener
+            }
+        });
     });
 
     jqUnit.test("We should be able to connect to an input on startup.", function () {
@@ -72,19 +55,8 @@
             }
         });
 
-        var runTests = function (that) {
-            jqUnit.start();
-            jqUnit.assertEquals("There should be one connection.", 1, youme.tests.countChildComponents(that, "youme.connection.input"));
-        };
-
-        jqUnit.stop();
-
-        youme.test.portConnector.input({
-            model: {
-                portSpec: { id: "input1" }
-            },
-            runTests: runTests
-        });
+        var that = youme.portConnector.input({ model: { portSpec: { id: "input1" }}});
+        jqUnit.assertEquals("There should be one connection.", 1, youme.tests.countChildComponents(that, "youme.connection.input"));
     });
 
     jqUnit.test("We should be able to disconnect from an input.", function () {
@@ -95,26 +67,15 @@
             }
         });
 
-        jqUnit.stop();
+        var that = youme.portConnector.input({ model: { portSpec: {id: "input1"}}});
 
-        var runTests = function (that) {
-            jqUnit.start();
+        jqUnit.assertEquals("There should be one connection.", 1, youme.tests.countChildComponents(that, "youme.connection.input"));
 
-            jqUnit.assertEquals("There should be one connection.", 1, youme.tests.countChildComponents(that, "youme.connection.input"));
+        var transaction = that.applier.initiate();
+        transaction.fireChangeRequest({ path: "portSpec", type: "DELETE" });
+        transaction.commit();
 
-            var transaction = that.applier.initiate();
-            transaction.fireChangeRequest({ path: "portSpec", type: "DELETE" });
-            transaction.commit();
-
-            jqUnit.assertEquals("There should be no connection.", 0, youme.tests.countChildComponents(that, "youme.connection.input"));
-        };
-
-        youme.test.portConnector.input({
-            model: {
-                portSpec: { id: "input1" }
-            },
-            runTests: runTests
-        });
+        jqUnit.assertEquals("There should be no connection.", 0, youme.tests.countChildComponents(that, "youme.connection.input"));
     });
 
     jqUnit.test("No connection should be created when the portSpec matches multiple ports.", function () {
@@ -125,41 +86,21 @@
             }
         });
 
-        var runTests = function (that) {
-            jqUnit.start();
-            jqUnit.assertEquals("There should be no connection.", 0, youme.tests.countChildComponents(that, "youme.connection.input"));
-        };
-
-        jqUnit.stop();
-
-        youme.test.portConnector.input({
-            model: {
-                portSpec: { name: "sample input" }
-            },
-            runTests: runTests
-        });
+        var that = youme.portConnector.input({ model: { portSpec: { name: "sample input" }}});
+        jqUnit.assertEquals("There should be no connection.", 0, youme.tests.countChildComponents(that, "youme.connection.input"));
     });
 
     jqUnit.test("A connection should be created when a matching port is added.", function () {
         var webMidiMock = youme.tests.createWebMidiMock();
 
-        var runTests = function (that) {
-            jqUnit.start();
-            jqUnit.assertEquals("There should be no connection.", 0, youme.tests.countChildComponents(that, "youme.connection.input"));
+        var that = youme.portConnector.input({ model: { portSpec: { id: "new" }}});
 
-            webMidiMock.addPort({ type: "input", id: "new"});
+        jqUnit.assertEquals("There should be no connection.", 0, youme.tests.countChildComponents(that, "youme.connection.input"));
 
-            jqUnit.assertEquals("There should be a connection.", 1, youme.tests.countChildComponents(that, "youme.connection.input"));
-        };
+        webMidiMock.addPort({ type: "input", id: "new"});
 
-        jqUnit.stop();
+        jqUnit.assertEquals("There should be a connection.", 1, youme.tests.countChildComponents(that, "youme.connection.input"));
 
-        youme.test.portConnector.input({
-            model: {
-                portSpec: { id: "new" }
-            },
-            runTests: runTests
-        });
     });
 
     // TODO: This test introduces instability in other test modules, which fail with no assertions.
@@ -234,24 +175,14 @@
         var sampleMessage = { type: "noteOn", channel: 0, velocity: 88, note: 89};
         var expectedData = youme.write(sampleMessage);
 
-        var runTests = function (that) {
-            jqUnit.start();
-            jqUnit.assertEquals("There should be one connection.", 1, youme.tests.countChildComponents(that, "youme.connection.output"));
+        var that = youme.test.portConnector.output({ model: { portSpec: { id: "output" }}});
 
-            var access = webMidiMock.accessEventTargets[0];
-            var outputPort = access.outputs.get("output");
+        jqUnit.assertEquals("There should be one connection.", 1, youme.tests.countChildComponents(that, "youme.connection.output"));
 
-            that.events.sendNoteOn.fire(sampleMessage);
-            jqUnit.assertDeepEq("The message should have been sent.", [expectedData], outputPort.calls.send[0]);
-        };
+        var access = webMidiMock.accessEventTargets[0];
+        var outputPort = access.outputs.get("output");
 
-        jqUnit.stop();
-
-        youme.test.portConnector.output({
-            model: {
-                portSpec: { id: "output" }
-            },
-            runTests: runTests
-        });
+        that.events.sendNoteOn.fire(sampleMessage);
+        jqUnit.assertDeepEq("The message should have been sent.", [expectedData], outputPort.calls.send[0]);
     });
 })(fluid);

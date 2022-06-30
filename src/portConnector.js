@@ -13,18 +13,35 @@
         gradeNames: ["fluid.modelComponent"],
 
         events: {
+            onAccessError: null,
+            onAccessGranted: null,
             onPortOpen: null
+        },
+
+        resources: {
+            system: {
+                promiseFunc: "{youme.system}.onCreate"
+            }
         },
 
         model: {
             open: true,
             portSpec: {},
-            connectionPort: null
+            connectionPort: null,
+
+            // Ensure that we're not created before our youme.system is ready.
+            system: "{that}.resources.system.parsed"
         },
 
         components: {
             midiSystem: {
-                type: "youme.system"
+                type: "youme.system",
+                options: {
+                    listeners: {
+                        "onAccessError.relay": "{youme.portConnector}.events.onAccessError.fire",
+                        "onAccessGranted.relay": "{youme.portConnector}.events.onAccessGranted.fire"
+                    }
+                }
             }
         },
         dynamicComponents: {
@@ -37,16 +54,14 @@
                         open: "{youme.portConnector}.model.open"
                     },
                     listeners: {
-                        "onPortOpen.notifyParent": {
-                            func: "{youme.portConnector}.events.onPortOpen.fire"
-                        }
+                        "onPortOpen.notifyParent": "{youme.portConnector}.events.onPortOpen.fire"
                     }
                 }
             }
         },
         modelListeners: {
             "ports": {
-                excludeSource: "init",
+                // excludeSource: "init",
                 funcName: "youme.portConnector.findPort",
                 args: ["{that}"]
             },

@@ -11,33 +11,6 @@
 
     fluid.registerNamespace("youme.test.multiPortConnector");
 
-    // The `youme.system` component needs to complete its own setup for ports to be visible elsewhere. Since this is
-    // the only sequence of asynchronous events we need to occur before we can run our tests, we handle it using a
-    // single listener rather than full Fluid IoC tests.
-    fluid.defaults("youme.test.multiPortConnector.testRunner", {
-        runTests: fluid.notImplemented,
-        components: {
-            midiSystem: {
-                options: {
-                    listeners: {
-                        "onReady.runTests": {
-                            func: "{youme.test.multiPortConnector.testRunner}.options.runTests",
-                            args: ["{youme.multiPortConnector}"]
-                        }
-                    }
-                }
-            }
-        }
-    });
-
-    fluid.defaults("youme.test.multiPortConnector.inputs", {
-        gradeNames: ["youme.multiPortConnector.inputs", "youme.test.multiPortConnector.testRunner"]
-    });
-
-    fluid.defaults("youme.test.multiPortConnector.outputs", {
-        gradeNames: ["youme.multiPortConnector.outputs", "youme.test.multiPortConnector.testRunner"]
-    });
-
     jqUnit.module("Multiport Input connector tests");
 
     jqUnit.test("We should be able to connect to a single input.", function () {
@@ -48,18 +21,14 @@
             }
         });
 
-        jqUnit.stop();
+        var that = youme.multiPortConnector.inputs();
 
-        var runTests = function (that) {
-            jqUnit.start();
-            jqUnit.assertEquals("There should be no connection.", 0, youme.tests.countChildComponents(that, "youme.connection.input"));
+        jqUnit.assertEquals("There should be no connection.", 0, youme.tests.countChildComponents(that, "youme.connection.input"));
 
-            that.applier.change("portSpecs", [{ id: "input2" }] );
+        that.applier.change("portSpecs", [{ id: "input2" }] );
 
-            jqUnit.assertEquals("There should be one connection.", 1, youme.tests.countChildComponents(that, "youme.connection.input"));
-        };
+        jqUnit.assertEquals("There should be one connection.", 1, youme.tests.countChildComponents(that, "youme.connection.input"));
 
-        youme.test.multiPortConnector.inputs({ runTests: runTests });
     });
 
     jqUnit.test("We should be able to connect to multiple inputs.", function () {
@@ -70,18 +39,14 @@
             }
         });
 
-        jqUnit.stop();
+        var that = youme.multiPortConnector.inputs();
 
-        var runTests = function (that) {
-            jqUnit.start();
-            jqUnit.assertEquals("There should be no connection.", 0, youme.tests.countChildComponents(that, "youme.connection.input"));
+        jqUnit.assertEquals("There should be no connection.", 0, youme.tests.countChildComponents(that, "youme.connection.input"));
 
-            that.applier.change("portSpecs", [{ id: "input2" }, { id: "input1"}] );
+        that.applier.change("portSpecs", [{ id: "input2" }, { id: "input1"}] );
 
-            jqUnit.assertEquals("There should be two connections.", 2, youme.tests.countChildComponents(that, "youme.connection.input"));
-        };
+        jqUnit.assertEquals("There should be two connections.", 2, youme.tests.countChildComponents(that, "youme.connection.input"));
 
-        youme.test.multiPortConnector.inputs({ runTests: runTests });
     });
 
     jqUnit.test("We should be able to connect to an input on startup.", function () {
@@ -92,19 +57,9 @@
             }
         });
 
-        var runTests = function (that) {
-            jqUnit.start();
-            jqUnit.assertEquals("There should be one connection.", 1, youme.tests.countChildComponents(that, "youme.connection.input"));
-        };
+        var that = youme.multiPortConnector.inputs({ model: { portSpecs: [{ id: "input1" }]}});
 
-        jqUnit.stop();
-
-        youme.test.multiPortConnector.inputs({
-            model: {
-                portSpecs: [{ id: "input1" }]
-            },
-            runTests: runTests
-        });
+        jqUnit.assertEquals("There should be one connection.", 1, youme.tests.countChildComponents(that, "youme.connection.input"));
     });
 
     jqUnit.test("We should be able to disconnect from an input.", function () {
@@ -115,26 +70,19 @@
             }
         });
 
-        jqUnit.stop();
-
-        var runTests = function (that) {
-            jqUnit.start();
-
-            jqUnit.assertEquals("There should be one connection.", 1, youme.tests.countChildComponents(that, "youme.connection.input"));
-
-            var transaction = that.applier.initiate();
-            transaction.fireChangeRequest({ path: "portSpecs", type: "DELETE" });
-            transaction.commit();
-
-            jqUnit.assertEquals("There should be no connection.", 0, youme.tests.countChildComponents(that, "youme.connection.input"));
-        };
-
-        youme.test.multiPortConnector.inputs({
+        var that = youme.multiPortConnector.inputs({
             model: {
                 portSpecs: [{ id: "input1" }]
-            },
-            runTests: runTests
+            }
         });
+
+        jqUnit.assertEquals("There should be one connection.", 1, youme.tests.countChildComponents(that, "youme.connection.input"));
+
+        var transaction = that.applier.initiate();
+        transaction.fireChangeRequest({ path: "portSpecs", type: "DELETE" });
+        transaction.commit();
+
+        jqUnit.assertEquals("There should be no connection.", 0, youme.tests.countChildComponents(that, "youme.connection.input"));
     });
 
     jqUnit.test("Multiple connections should be created when the portSpec matches multiple ports.", function () {
@@ -145,19 +93,9 @@
             }
         });
 
-        var runTests = function (that) {
-            jqUnit.start();
-            jqUnit.assertEquals("There should be two connections.", 2, youme.tests.countChildComponents(that, "youme.connection.input"));
-        };
+        var that = youme.multiPortConnector.inputs({ model: { portSpecs: [{ name: "sample input" }]}});
 
-        jqUnit.stop();
-
-        youme.test.multiPortConnector.inputs({
-            model: {
-                portSpecs: [{ name: "sample input" }]
-            },
-            runTests: runTests
-        });
+        jqUnit.assertEquals("There should be two connections.", 2, youme.tests.countChildComponents(that, "youme.connection.input"));
     });
 
     jqUnit.test("We should be able to relay messages from connections to the multiport connector.", function () {
@@ -169,8 +107,6 @@
         });
 
         var sampleMessage = { type: "noteOn", channel: 0, velocity: 88, note: 89};
-
-        var runTests = function () {};
 
         var timesCalled = 0;
         var portOpenListener = function (that) {
@@ -203,7 +139,6 @@
             model: {
                 portSpecs: [{ name: "sample input" }]
             },
-            runTests: runTests,
             listeners: {
                 "onNoteOn.recordMessage": {
                     funcName: "youme.test.multiPortConnector.recordMessage",
@@ -243,27 +178,17 @@
         var sampleMessage = { type: "noteOn", channel: 0, velocity: 88, note: 89};
         var expectedData = youme.write(sampleMessage);
 
-        var runTests = function (that) {
-            jqUnit.start();
-            jqUnit.assertEquals("There should be two connections.", 2, youme.tests.countChildComponents(that, "youme.connection.output"));
+        var that = youme.multiPortConnector.outputs({ model: { portSpecs: [{ name: "sample output" }]}});
 
-            var access = webMidiMock.accessEventTargets[0];
-            var outputPort1 = access.outputs.get("output1");
-            var outputPort2 = access.outputs.get("output2");
+        jqUnit.assertEquals("There should be two connections.", 2, youme.tests.countChildComponents(that, "youme.connection.output"));
 
-            that.events.sendNoteOn.fire(sampleMessage);
-            jqUnit.assertDeepEq("The message should have been sent to the first port.", [expectedData], outputPort1.calls.send[0]);
-            jqUnit.assertDeepEq("The message should have been sent to the second port.", [expectedData], outputPort2.calls.send[0]);
-        };
+        var access = webMidiMock.accessEventTargets[0];
+        var outputPort1 = access.outputs.get("output1");
+        var outputPort2 = access.outputs.get("output2");
 
-        jqUnit.stop();
-
-        youme.test.multiPortConnector.outputs({
-            model: {
-                portSpecs: [{ name: "sample output" }]
-            },
-            runTests: runTests
-        });
+        that.events.sendNoteOn.fire(sampleMessage);
+        jqUnit.assertDeepEq("The message should have been sent to the first port.", [expectedData], outputPort1.calls.send[0]);
+        jqUnit.assertDeepEq("The message should have been sent to the second port.", [expectedData], outputPort2.calls.send[0]);
     });
 
     jqUnit.module("Input -> Output relay tests.");
