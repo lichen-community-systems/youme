@@ -11,33 +11,6 @@
 
     fluid.registerNamespace("youme.test.multiPortConnector");
 
-    // The `youme.system` component needs to complete its own setup for ports to be visible elsewhere. Since this is
-    // the only sequence of asynchronous events we need to occur before we can run our tests, we handle it using a
-    // single listener rather than full Fluid IoC tests.
-    fluid.defaults("youme.test.multiPortConnector.testRunner", {
-        runTests: fluid.notImplemented,
-        components: {
-            midiSystem: {
-                options: {
-                    listeners: {
-                        "onReady.runTests": {
-                            func: "{youme.test.multiPortConnector.testRunner}.options.runTests",
-                            args: ["{youme.multiPortConnector}"]
-                        }
-                    }
-                }
-            }
-        }
-    });
-
-    fluid.defaults("youme.test.multiPortConnector.inputs", {
-        gradeNames: ["youme.multiPortConnector.inputs", "youme.test.multiPortConnector.testRunner"]
-    });
-
-    fluid.defaults("youme.test.multiPortConnector.outputs", {
-        gradeNames: ["youme.multiPortConnector.outputs", "youme.test.multiPortConnector.testRunner"]
-    });
-
     jqUnit.module("Multiport Input connector tests");
 
     jqUnit.test("We should be able to connect to a single input.", function () {
@@ -48,18 +21,14 @@
             }
         });
 
-        jqUnit.stop();
-
-        var runTests = function (that) {
-            jqUnit.start();
+        var that = youme.multiPortConnector.inputs();
+        that.events.onCreate.then(function () {
             jqUnit.assertEquals("There should be no connection.", 0, youme.tests.countChildComponents(that, "youme.connection.input"));
 
             that.applier.change("portSpecs", [{ id: "input2" }] );
 
             jqUnit.assertEquals("There should be one connection.", 1, youme.tests.countChildComponents(that, "youme.connection.input"));
-        };
-
-        youme.test.multiPortConnector.inputs({ runTests: runTests });
+        });
     });
 
     jqUnit.test("We should be able to connect to multiple inputs.", function () {
@@ -70,18 +39,14 @@
             }
         });
 
-        jqUnit.stop();
-
-        var runTests = function (that) {
-            jqUnit.start();
+        var that = youme.multiPortConnector.inputs();
+        that.events.onCreate.then(function () {
             jqUnit.assertEquals("There should be no connection.", 0, youme.tests.countChildComponents(that, "youme.connection.input"));
 
             that.applier.change("portSpecs", [{ id: "input2" }, { id: "input1"}] );
 
             jqUnit.assertEquals("There should be two connections.", 2, youme.tests.countChildComponents(that, "youme.connection.input"));
-        };
-
-        youme.test.multiPortConnector.inputs({ runTests: runTests });
+        });
     });
 
     jqUnit.test("We should be able to connect to an input on startup.", function () {
@@ -92,18 +57,9 @@
             }
         });
 
-        var runTests = function (that) {
-            jqUnit.start();
+        var that = youme.multiPortConnector.inputs({ model: { portSpecs: [{ id: "input1" }]}});
+        that.events.onCreate.then(function () {
             jqUnit.assertEquals("There should be one connection.", 1, youme.tests.countChildComponents(that, "youme.connection.input"));
-        };
-
-        jqUnit.stop();
-
-        youme.test.multiPortConnector.inputs({
-            model: {
-                portSpecs: [{ id: "input1" }]
-            },
-            runTests: runTests
         });
     });
 
@@ -115,11 +71,13 @@
             }
         });
 
-        jqUnit.stop();
+        var that = youme.multiPortConnector.inputs({
+            model: {
+                portSpecs: [{ id: "input1" }]
+            }
+        });
 
-        var runTests = function (that) {
-            jqUnit.start();
-
+        that.events.onCreate.then(function () {
             jqUnit.assertEquals("There should be one connection.", 1, youme.tests.countChildComponents(that, "youme.connection.input"));
 
             var transaction = that.applier.initiate();
@@ -127,14 +85,8 @@
             transaction.commit();
 
             jqUnit.assertEquals("There should be no connection.", 0, youme.tests.countChildComponents(that, "youme.connection.input"));
-        };
-
-        youme.test.multiPortConnector.inputs({
-            model: {
-                portSpecs: [{ id: "input1" }]
-            },
-            runTests: runTests
         });
+
     });
 
     jqUnit.test("Multiple connections should be created when the portSpec matches multiple ports.", function () {
@@ -145,18 +97,9 @@
             }
         });
 
-        var runTests = function (that) {
-            jqUnit.start();
+        var that = youme.multiPortConnector.inputs({ model: { portSpecs: [{ name: "sample input" }]}});
+        that.events.onCreate.then(function () {
             jqUnit.assertEquals("There should be two connections.", 2, youme.tests.countChildComponents(that, "youme.connection.input"));
-        };
-
-        jqUnit.stop();
-
-        youme.test.multiPortConnector.inputs({
-            model: {
-                portSpecs: [{ name: "sample input" }]
-            },
-            runTests: runTests
         });
     });
 
@@ -170,12 +113,13 @@
 
         var sampleMessage = { type: "noteOn", channel: 0, velocity: 88, note: 89};
 
-        var runTests = function () {};
+        // Stop to wait for ports to open.
+        jqUnit.stop();
 
-        var timesCalled = 0;
-        var portOpenListener = function (that) {
-            timesCalled++;
-            if (timesCalled === 2) {
+        // Not totally happy with this, but we need to wait for all child ports to open, and this does that.
+        var calls = 0;
+        var portOpenListener = function () {
+            if (calls === 1) {
                 jqUnit.start();
                 jqUnit.assertEquals("There should be two connections.", 2, youme.tests.countChildComponents(that, "youme.connection.input"));
                 var access = webMidiMock.accessEventTargets[0];
@@ -191,21 +135,18 @@
 
                 jqUnit.assertEquals("Two messages should have been received.", 2, that.messagesReceived.length);
             }
+            calls++;
         };
 
-        // Stop to wait for `youme.system` to be ready (when runTests will be run).
-        jqUnit.stop();
-
-        youme.test.multiPortConnector.inputs({
+        var that = youme.multiPortConnector.inputs({
             members: {
                 messagesReceived: []
             },
             model: {
                 portSpecs: [{ name: "sample input" }]
             },
-            runTests: runTests,
             listeners: {
-                "onNoteOn.recordMessage": {
+                "onMessage.recordMessage": {
                     funcName: "youme.test.multiPortConnector.recordMessage",
                     args: ["{that}", "{arguments}.0"]
                 }
@@ -243,8 +184,8 @@
         var sampleMessage = { type: "noteOn", channel: 0, velocity: 88, note: 89};
         var expectedData = youme.write(sampleMessage);
 
-        var runTests = function (that) {
-            jqUnit.start();
+        var that = youme.multiPortConnector.outputs({ model: { portSpecs: [{ name: "sample output" }]}});
+        that.events.onCreate.then(function () {
             jqUnit.assertEquals("There should be two connections.", 2, youme.tests.countChildComponents(that, "youme.connection.output"));
 
             var access = webMidiMock.accessEventTargets[0];
@@ -254,15 +195,6 @@
             that.events.sendNoteOn.fire(sampleMessage);
             jqUnit.assertDeepEq("The message should have been sent to the first port.", [expectedData], outputPort1.calls.send[0]);
             jqUnit.assertDeepEq("The message should have been sent to the second port.", [expectedData], outputPort2.calls.send[0]);
-        };
-
-        jqUnit.stop();
-
-        youme.test.multiPortConnector.outputs({
-            model: {
-                portSpecs: [{ name: "sample output" }]
-            },
-            runTests: runTests
         });
     });
 
