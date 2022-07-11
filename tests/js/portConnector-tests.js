@@ -6,6 +6,7 @@
  */
 /*global jqUnit */
 // TODO: These have to be run last or they will cause problems with subsequent tests.
+// I have tried adding more rigid stop/start calls, but that seems not to help.
 // I suspect additional listener calls or faulty start/stop logic are to blame.
 (function (fluid) {
     "use strict";
@@ -25,14 +26,6 @@
             }
         });
 
-        var accessGrantedListener = function () {
-            jqUnit.start();
-            jqUnit.assertEquals("There should be no connection.", 0, youme.tests.countChildComponents(that, "youme.connection.input"));
-
-            jqUnit.stop();
-            that.applier.change("portSpec", { id: "input2" } );
-        };
-
         var portOpenListener = function () {
             jqUnit.start();
             jqUnit.assertEquals("There should be one connection.", 1, youme.tests.countChildComponents(that, "youme.connection.input"));
@@ -41,9 +34,15 @@
         jqUnit.stop();
         var that = youme.portConnector.input({
             listeners: {
-                onAccessGranted: accessGrantedListener,
                 onPortOpen: portOpenListener
             }
+        });
+
+        that.events.onCreate.then(function () {
+            jqUnit.start();
+            jqUnit.assertEquals("There should be no connection.", 0, youme.tests.countChildComponents(that, "youme.connection.input"));
+            jqUnit.stop();
+            that.applier.change("portSpec", { id: "input2" } );
         });
     });
 
@@ -56,7 +55,9 @@
         });
 
         var that = youme.portConnector.input({ model: { portSpec: { id: "input1" }}});
-        jqUnit.assertEquals("There should be one connection.", 1, youme.tests.countChildComponents(that, "youme.connection.input"));
+        that.events.onCreate.then(function () {
+            jqUnit.assertEquals("There should be one connection.", 1, youme.tests.countChildComponents(that, "youme.connection.input"));
+        });
     });
 
     jqUnit.test("We should be able to disconnect from an input.", function () {
@@ -68,14 +69,15 @@
         });
 
         var that = youme.portConnector.input({ model: { portSpec: {id: "input1"}}});
+        that.events.onCreate.then(function () {
+            jqUnit.assertEquals("There should be one connection.", 1, youme.tests.countChildComponents(that, "youme.connection.input"));
 
-        jqUnit.assertEquals("There should be one connection.", 1, youme.tests.countChildComponents(that, "youme.connection.input"));
+            var transaction = that.applier.initiate();
+            transaction.fireChangeRequest({ path: "portSpec", type: "DELETE" });
+            transaction.commit();
 
-        var transaction = that.applier.initiate();
-        transaction.fireChangeRequest({ path: "portSpec", type: "DELETE" });
-        transaction.commit();
-
-        jqUnit.assertEquals("There should be no connection.", 0, youme.tests.countChildComponents(that, "youme.connection.input"));
+            jqUnit.assertEquals("There should be no connection.", 0, youme.tests.countChildComponents(that, "youme.connection.input"));
+        });
     });
 
     jqUnit.test("No connection should be created when the portSpec matches multiple ports.", function () {
@@ -87,7 +89,9 @@
         });
 
         var that = youme.portConnector.input({ model: { portSpec: { name: "sample input" }}});
-        jqUnit.assertEquals("There should be no connection.", 0, youme.tests.countChildComponents(that, "youme.connection.input"));
+        that.events.onCreate.then(function () {
+            jqUnit.assertEquals("There should be no connection.", 0, youme.tests.countChildComponents(that, "youme.connection.input"));
+        });
     });
 
     jqUnit.test("A connection should be created when a matching port is added.", function () {
@@ -95,15 +99,15 @@
 
         var that = youme.portConnector.input({ model: { portSpec: { id: "new" }}});
 
-        jqUnit.assertEquals("There should be no connection.", 0, youme.tests.countChildComponents(that, "youme.connection.input"));
+        that.events.onCreate.then(function () {
+            jqUnit.assertEquals("There should be no connection.", 0, youme.tests.countChildComponents(that, "youme.connection.input"));
 
-        webMidiMock.addPort({ type: "input", id: "new"});
+            webMidiMock.addPort({ type: "input", id: "new"});
 
-        jqUnit.assertEquals("There should be a connection.", 1, youme.tests.countChildComponents(that, "youme.connection.input"));
-
+            jqUnit.assertEquals("There should be a connection.", 1, youme.tests.countChildComponents(that, "youme.connection.input"));
+        });
     });
 
-    // TODO: This test introduces instability in other test modules, which fail with no assertions.
     jqUnit.test("We should be able to receive messages from an input port.", function () {
         jqUnit.expect(2);
 
@@ -116,9 +120,9 @@
 
         var sampleMessage = { type: "noteOn", channel: 0, velocity: 88, note: 89};
 
-        var portOpenListener = function (portConnector) {
+        var onPortOpenListener = function () {
             jqUnit.start();
-            jqUnit.assertEquals("There should be one connection.", 1, youme.tests.countChildComponents(portConnector, "youme.connection.input"));
+            jqUnit.assertEquals("There should be one connection.", 1, youme.tests.countChildComponents(that, "youme.connection.input"));
 
             var access = webMidiMock.accessEventTargets[0];
             var inputPort = access.inputs.get("input1");
@@ -138,26 +142,16 @@
         // Stop to wait for port to be opened.
         jqUnit.stop();
 
-        youme.portConnector.input({
+        var that = youme.portConnector.input({
             model: {
                 portSpec: { id: "input1" }
             },
             listeners: {
+                "onPortOpen.startChecks": {
+                    func: onPortOpenListener
+                },
                 "onNoteOn.checkResults": {
                     func: noteOnListener
-                }
-            },
-            dynamicComponents: {
-                connection: {
-                    options: {
-                        listeners: {
-                            "onPortOpen.sendMessage": {
-                                priority: "after:startListening",
-                                func: portOpenListener,
-                                args: ["{youme.portConnector.input}"]
-                            }
-                        }
-                    }
                 }
             }
         });
@@ -175,14 +169,15 @@
         var sampleMessage = { type: "noteOn", channel: 0, velocity: 88, note: 89};
         var expectedData = youme.write(sampleMessage);
 
-        var that = youme.test.portConnector.output({ model: { portSpec: { id: "output" }}});
+        var that = youme.portConnector.output({ model: { portSpec: { id: "output" }}});
+        that.events.onCreate.then(function () {
+            jqUnit.assertEquals("There should be one connection.", 1, youme.tests.countChildComponents(that, "youme.connection.output"));
 
-        jqUnit.assertEquals("There should be one connection.", 1, youme.tests.countChildComponents(that, "youme.connection.output"));
+            var access = webMidiMock.accessEventTargets[0];
+            var outputPort = access.outputs.get("output");
 
-        var access = webMidiMock.accessEventTargets[0];
-        var outputPort = access.outputs.get("output");
-
-        that.events.sendNoteOn.fire(sampleMessage);
-        jqUnit.assertDeepEq("The message should have been sent.", [expectedData], outputPort.calls.send[0]);
+            that.events.sendNoteOn.fire(sampleMessage);
+            jqUnit.assertDeepEq("The message should have been sent.", [expectedData], outputPort.calls.send[0]);
+        });
     });
 })(fluid);

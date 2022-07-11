@@ -100,27 +100,21 @@
         });
     });
 
+    // Previously this test used two levels of async stop/start cycles, one for startup, one for listeneing for the port
+    // add.  This succeeded on its own but caused problems in subsequent tests.  The current setup avoids using any
+    // asynchrony, but may need to be rewritten in the future.
     jqUnit.test("The system should respond correctly when a port is added.", function () {
         jqUnit.expect(2);
         var mock = youme.tests.createWebMidiMock();
 
-        jqUnit.stop();
         var that = youme.system();
 
         that.events.onCreate.then(function () {
-            jqUnit.start();
-
             jqUnit.assertEquals("There should be no input ports.", 0, Object.keys(that.model.ports.inputs).length);
 
-            jqUnit.stop();
-
-            // We add the listener manually to avoid the initial onPortsAvailable firing (when there are no ports).
-            that.events.onPortsAvailable.addListener(function () {
-                jqUnit.start();
-                jqUnit.assertEquals("There should be an input port.", 1, Object.keys(that.model.ports.inputs).length);
-            }, "checkNewPort", "after:modelizePorts");
-
             mock.addPort({ type: "input", id: "1234", name: "Launchpad Pro", manufacturer: "Novation"});
+
+            jqUnit.assertEquals("There should be an input port.", 1, Object.keys(that.model.ports.inputs).length);
         });
     });
 })(fluid, jqUnit);

@@ -48,7 +48,6 @@
                 args: ["{that}", "{that}.options.direction"] // direction
             },
             "portSpecs": {
-                excludeSource: "init",
                 funcName: "youme.multiPortConnector.findPorts",
                 args: ["{that}", "{that}.options.direction"] // direction
             }
