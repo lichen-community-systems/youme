@@ -41,8 +41,6 @@ fluid.defaults("my.widget", {
     },
     modelListeners: {
         label: {
-            // Exclude "init" so that we don't interfere with the initial render.
-            excludeSource: "init",
             this: "{that}.dom.label",
             method: "html",
             args: ["{that}.model.label"]

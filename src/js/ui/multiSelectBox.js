@@ -60,14 +60,12 @@
         },
         modelListeners: {
             selectBoxRefresh: {
-                excludeSource: "init",
                 path: ["selectedItemIds", "optionItems"],
                 this: "{that}.dom.multiSelectBox",
                 method: "html",
                 args: ["@expand:{that}.renderOptions()"]
             },
             label: {
-                excludeSource: "init",
                 this: "{that}.dom.label",
                 method: "html",
                 args: ["{that}.model.label"]
