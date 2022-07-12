@@ -50,22 +50,9 @@
         //     }
         // }
 
-        // Would also be nice, but is never triggered.
-        // modelListeners: {
-        //     findPorts: {
-        //         paths: ["ports", "portSpecs"],
-        //         funcName: "youme.multiPortConnector.findPorts",
-        //         args: ["{that}", "{that}.options.direction"] // direction
-        //     }
-        // }
-
         modelListeners: {
-            "ports": {
-                excludeSource: "init",
-                funcName: "youme.multiPortConnector.findPorts",
-                args: ["{that}", "{that}.options.direction"] // direction
-            },
-            "portSpecs": {
+            findPorts: {
+                path: ["ports", "portSpecs"],
                 funcName: "youme.multiPortConnector.findPorts",
                 args: ["{that}", "{that}.options.direction"] // direction
             }
