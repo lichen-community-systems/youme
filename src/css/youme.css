@@ -25,8 +25,9 @@
 }
 
 .youme-select {
-    border-radius: 1rem;
-    height: 2.5rem;
+    border-radius: 1.5rem;
+    height: 4.5rem;
+    padding-left: 2rem;
 }
 
 .youme-select-label {

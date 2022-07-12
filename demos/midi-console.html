@@ -1,0 +1,44 @@
+<!--
+  ~ Copyright 2022, Tony Atkins
+  ~ Copyright 2011-2020, Colin Clark
+  ~
+  ~  Licensed under the MIT license, see LICENSE for details.
+  -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>"MIDI Console" Demo.</title>
+
+    <script src="../node_modules/infusion/dist/infusion-all.js"></script>
+
+    <script src="../src/js/core.js"></script>
+    <script src="../src/js/system.js"></script>
+    <script src="../src/js/messageEventHolders.js"></script>
+    <script src="../src/js/connection.js"></script>
+    <script src="../src/js/portConnector.js"></script>
+
+    <script src="../src/js/ui/templateRenderer.js"></script>
+    <script src="../src/js/ui/selectBox.js"></script>
+    <script src="../src/js/ui/portSelectorView.js"></script>
+    <script src="../src/js/ui/svgIcon.js"></script>
+
+    <script src="./js/console.js"></script>
+
+    <link type="text/css" rel="stylesheet" href="../src/css/youme.css"/>
+    <link type="text/css" rel="stylesheet" href="./css/console.css"/>
+</head>
+<body>
+<h3>"MIDI Console" Demo</h3>
+
+<p>
+    Convert messages between HEX (raw) MIDI format and YouMe's JSON format, and send the results to a MIDI output if
+    desired.
+</p>
+
+<div class="console"></div>
+
+<script>
+    var console = youme.demos.console(".console");
+</script>
+</body>
+</html>
