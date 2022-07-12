@@ -41,6 +41,7 @@
         },
 
         model: {
+            // Resolves to the MIDIAccess object provided by `navigator.requestMIDIAccess`.
             access: "{that}.resources.access.parsed",
             ports: { inputs: {}, outputs: {} }
         },

@@ -62,7 +62,7 @@
      *
      * @typedef MIDIMessageData
      * @type {Uint8Array}
-     * @return {Promise} - A promise that will resolve when access is granted or reject otherwise.
+     * @return {Promise} - A promise that will resolve with a `MIDIAccess` object when access is granted or reject otherwise.
      */
     youme.requestAccess = function (sysex, software, onAccessGranted, onError) {
         // We wrap this so that we can consistently return a promise.
