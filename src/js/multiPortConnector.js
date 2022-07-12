@@ -41,6 +41,24 @@
             }
         },
 
+        // Suggested by Antranig, but fails with circular reference error.
+        // modelRelay: {
+        //     findPorts: {
+        //         target: "connectionPorts",
+        //         func: "youme.multiPortConnector.findPorts",
+        //         args: ["{that}", "{that}.options.direction", "{that}.model.ports", "{that}.model.portSpecs"]
+        //     }
+        // }
+
+        // Would also be nice, but is never triggered.
+        // modelListeners: {
+        //     findPorts: {
+        //         paths: ["ports", "portSpecs"],
+        //         funcName: "youme.multiPortConnector.findPorts",
+        //         args: ["{that}", "{that}.options.direction"] // direction
+        //     }
+        // }
+
         modelListeners: {
             "ports": {
                 excludeSource: "init",
