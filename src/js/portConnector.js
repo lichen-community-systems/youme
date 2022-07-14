@@ -59,43 +59,38 @@
                 }
             }
         },
-        modelListeners: {
-            "ports": {
-                // excludeSource: "init",
-                funcName: "youme.portConnector.findPort",
-                args: ["{that}"]
-            },
-            "portSpec": {
-                excludeSource: "init",
-                funcName: "youme.portConnector.findPort",
-                args: ["{that}"]
+        modelRelay: {
+            findPort: {
+                target: "connectionPort",
+                func: "youme.portConnector.findPort",
+                args: ["{that}.model.ports", "{that}.model.portSpec"] // ports, portSpec
             }
         }
     });
 
-    youme.portConnector.findPort = function (that) {
-        var connectionPort = false;
-        if (that.model.portSpec) {
-            var portsToSearch = fluid.makeArray(fluid.get(that, ["model", "ports"]));
+    youme.portConnector.findPort = function (ports, portSpec) {
+        var connectionPort = null;
+        if (portSpec) {
+            var portsToSearch = fluid.makeArray(ports);
             if (portsToSearch.length === 0) {
                 fluid.log(fluid.logLevel.WARN, "Model has no ports to search.");
             }
             else {
-                var ports = youme.findPorts(portsToSearch, that.model.portSpec);
+                var foundPorts = youme.findPorts(portsToSearch, portSpec);
 
-                if (ports.length === 0) {
-                    fluid.log(fluid.logLevel.WARN, "No matching ports were found for port specification: ", JSON.stringify(that.options.portSpec));
+                if (foundPorts.length === 0) {
+                    fluid.log(fluid.logLevel.WARN, "No matching ports were found for port specification: ", JSON.stringify(portSpec));
                 }
-                else if (ports.length === 1) {
-                    connectionPort = ports[0];
+                else if (foundPorts.length === 1) {
+                    connectionPort = foundPorts[0];
                 }
-                else if (ports.length > 1) {
-                    fluid.log(fluid.logLevel.WARN, "More than one port found for port specification: ", JSON.stringify(that.options.portSpec));
+                else if (foundPorts.length > 1) {
+                    fluid.log(fluid.logLevel.WARN, "More than one port found for port specification: ", JSON.stringify(portSpec));
                 }
             }
         }
 
-        that.applier.change("connectionPort", connectionPort);
+        return connectionPort;
     };
 
     fluid.defaults("youme.portConnector.input", {

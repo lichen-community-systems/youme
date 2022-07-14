@@ -41,39 +41,30 @@
             }
         },
 
-        // Suggested by Antranig, but fails with circular reference error.
-        // modelRelay: {
-        //     findPorts: {
-        //         target: "connectionPorts",
-        //         func: "youme.multiPortConnector.findPorts",
-        //         args: ["{that}", "{that}.options.direction", "{that}.model.ports", "{that}.model.portSpecs"]
-        //     }
-        // }
-
-        modelListeners: {
+        modelRelay: {
             findPorts: {
-                path: ["ports", "portSpecs"],
-                funcName: "youme.multiPortConnector.findPorts",
-                args: ["{that}", "{that}.options.direction"] // direction
+                target: "connectionPorts",
+                func: "youme.multiPortConnector.findPorts",
+                args: ["{that}.options.direction", "{that}.model.ports", "{that}.model.portSpecs"] // direction, ports, portSpecs
             }
         }
     });
 
-    youme.multiPortConnector.findPorts = function (that, direction) {
+    youme.multiPortConnector.findPorts = function (direction, ports, portSpecs) {
         // Create it as a map indexed by ID so that we can avoid duplicates.
         var connectionPortsById = {};
-        fluid.each(that.model.portSpecs, function (portSpec) {
-            var portsToSearch = fluid.makeArray(fluid.get(that, ["model", "ports", direction]));
-            if (portsToSearch.length > 0) {
+        var portsToSearch = fluid.makeArray(fluid.get(ports, [direction]));
+
+        if (portsToSearch.length > 0) {
+            fluid.each(portSpecs, function (portSpec) {
                 var ports = youme.findPorts(portsToSearch, portSpec);
                 fluid.each(ports, function (port) {
                     connectionPortsById[port.id] = port;
                 });
-            }
-        });
+            });
+        }
         var connectionPorts = Object.values(connectionPortsById);
-
-        fluid.replaceModelValue(that.applier, "connectionPorts", connectionPorts);
+        return connectionPorts;
     };
 
     fluid.defaults("youme.multiPortConnector.inputs", {
