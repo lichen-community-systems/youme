@@ -20,20 +20,34 @@
         gradeNames: ["fluid.modelComponent"],
 
         model: {
-            port: false,
+            port: null, // A {MIDIPort} (see `core.js` or docs for details).  Should be `null` if none is available.
             open: false
         },
 
         events: {
             onPortOpen: null,
             onPortClose: null,
-            onError: null
+            onError: null,
+
+            // Transforming promise chain to handle multiple asynchronous activities on port change. Non-API event.
+            onPortChange: null
         },
 
         listeners: {
             "onError.logError": {
                 funcName: "fluid.log",
                 args: [fluid.logLevel.WARN, "{arguments}.0"]
+            },
+
+            "onPortChange.closeOldPort": {
+                priority: "first",
+                funcName: "youme.connection.close",
+                args: ["{arguments}.0", "{that}.events.onPortClose.fire", "{that}.events.onError.fire"] // port, onPortClose, onError
+            },
+            "onPortChange.openNewPort": {
+                priority: "after:closeOldPort",
+                funcName: "youme.connection.open",
+                args: ["{that}.model.port", "{that}.events.onPortOpen.fire", "{that}.events.onError.fire"] // port, onPortOpen, onError
             }
         },
 
@@ -44,44 +58,47 @@
             },
             port: {
                 excludeSource: "init", // On startup, both open and port are set, so we let the open listener decide whether to open the port.
-                funcName: "youme.connection.handlePortChange",
-                args: ["{change}.oldValue", "{that}.model.port", "{that}.model.open", "{that}.events.onPortOpen.fire", "{that}.events.onPortClose.fire", "{that}.events.onError.fire"] // oldPort, newPort, isOpen, onPortOpen, onPortClose, onError
+                funcName: "fluid.promise.fireTransformEvent",
+                args: ["{that}.events.onPortChange", "{change}.oldValue"] // event, payload[, options]
             }
         }
     });
 
-    youme.connection.handlePortChange = function (oldPort, newPort, isOpen, onPortOpen, onPortClose, onError) {
-        if (oldPort) {
-            oldPort.close();
-        }
-
-        if (newPort) {
-            youme.connection.updateConnectionState(newPort, isOpen, onPortOpen, onPortClose, onError);
-        }
-    };
-
     youme.connection.updateConnectionState = function (port, isOpen, onPortOpen, onPortClose, onError) {
-        if (port) {
-            if (isOpen) {
-                youme.connection.open(port, onPortOpen, onError);
-            }
-            else {
-                youme.connection.close(port, onPortClose, onError);
-            }
+        if (isOpen) {
+            return youme.connection.open(port, onPortOpen, onError);
         }
         else {
-            onError("Port is missing, cannot update connection state.");
+            return youme.connection.close(port, onPortClose, onError);
         }
     };
 
     youme.connection.open = function (port, onPortOpen, onError) {
-        var portOpenPromise = port.open();
-        portOpenPromise.then(onPortOpen, onError);
+        if (port) {
+            var openPromise = port.open();
+            openPromise.then(onPortOpen, onError);
+            return openPromise;
+        }
+        else {
+            var noPortPromise = fluid.promise();
+            noPortPromise.reject("Port is missing, cannot open port.");
+            noPortPromise.then(fluid.identity, onError);
+            return noPortPromise;
+        }
     };
 
     youme.connection.close = function (port, onPortClose, onError) {
-        var portClosePromise = port.close();
-        portClosePromise.then(onPortClose, onError);
+        if (port) {
+            var closePromise = port.close();
+            closePromise.then(onPortClose, onError);
+            return closePromise;
+        }
+        else {
+            var noPortPromise = fluid.promise();
+            noPortPromise.reject("Port is missing, cannot close port.");
+            noPortPromise.then(fluid.identity, onError);
+            return noPortPromise;
+        }
     };
 
     fluid.defaults("youme.connection.input", {

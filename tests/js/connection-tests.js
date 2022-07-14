@@ -80,7 +80,8 @@
 
         youme.connection({
             model: {
-                port: false
+                port: false,
+                open: true
             },
             listeners: {
                 onPortOpen: {
@@ -110,7 +111,8 @@
 
         youme.connection({
             model: {
-                port: explodingPort
+                port: explodingPort,
+                open: true
             },
             listeners: {
                 onPortOpen: {
