@@ -50,27 +50,29 @@
             }
         },
 
-        modelListeners: {
-            ports: {
-                funcName: "youme.multiPortSelectorView.findDesiredPorts",
-                args: ["{that}"]
+        modelRelay: {
+            findDesiredPorts: {
+                target: "selectedPortIds",
+                func: "youme.multiPortSelectorView.findDesiredPorts",
+                args: ["{that}.model.selectedPortIds", "{that}.model.ports", "{that}.options.desiredPortSpecs"] // selectedPortIds, ports, desiredPortSpecs
             },
-            selectedPortIds: {
-                funcName: "youme.multiPortSelectorView.updatePortSpecs",
-                args: ["{that}"]
+            updatePortSpecs: {
+                source: "selectedPortIds",
+                target: "portSpecs",
+                func: "youme.multiPortSelectorView.updatePortSpecs"
             }
         }
     });
 
-    youme.multiPortSelectorView.findDesiredPorts = function (that) {
+    youme.multiPortSelectorView.findDesiredPorts = function (selectedPortIds, ports, desiredPortSpecs) {
         var foundPortIdMap = {};
 
-        fluid.each(that.model.selectedPortIds, function (selectedPortId) {
+        fluid.each(selectedPortIds, function (selectedPortId) {
             foundPortIdMap[selectedPortId] = true;
         });
 
-        fluid.each(that.options.desiredPortSpecs, function (desiredPortSpec) {
-            var foundPorts = youme.findPorts(that.model.ports, desiredPortSpec);
+        fluid.each(desiredPortSpecs, function (desiredPortSpec) {
+            var foundPorts = youme.findPorts(ports, desiredPortSpec);
             fluid.each(foundPorts, function (foundPort) {
                 foundPortIdMap[foundPort.id] = true;
             });
@@ -78,16 +80,16 @@
 
         var uniqueFoundIds = Object.keys(foundPortIdMap);
 
-        fluid.replaceModelValue(that.applier, "selectedPortIds", uniqueFoundIds);
+        return uniqueFoundIds;
     };
 
-    youme.multiPortSelectorView.updatePortSpecs = function (that) {
+    youme.multiPortSelectorView.updatePortSpecs = function (selectedPortIds) {
         var updatedPortSpecs = [];
-        fluid.each(that.model.selectedPortIds, function (selectedPortId) {
+        fluid.each(selectedPortIds, function (selectedPortId) {
             updatedPortSpecs.push({ id: selectedPortId});
         });
 
-        fluid.replaceModelValue(that.applier, "portSpecs", updatedPortSpecs);
+        return updatedPortSpecs;
     };
 
     fluid.defaults("youme.multiPortSelectorView.inputs", {
