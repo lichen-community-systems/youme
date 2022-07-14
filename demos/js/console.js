@@ -24,27 +24,30 @@
             editor: ".editor"
         },
 
-        modelListeners: {
-            errorString: [
-                {
-                    excludeSource: "init",
-                    this: "{that}.dom.error",
-                    method: "text",
-                    args: ["{that}.model.errorString"]
-                },
-                {
-                    this: "{that}.dom.error",
-                    method: "toggleClass",
-                    args: ["console-visible", "{change}.value"]
-                }
-            ],
+        modelRelay: {
+            errorStyle: {
+                source: "{that}.model.errorString",
+                target: "dom.error.class.console-visible"
+            },
+            errorText: {
+                source: "{that}.model.errorString",
+                target: "dom.error.text"
+            },
+            // This relay doesn't seem to do what we need on startup, i.e. the initial value is lost.
             editorString: {
-                excludeSource: "init",
-                this: "{that}.dom.editor",
-                method: "val",
-                args: ["{that}.model.editorString"]
+                source: "{that}.model.editorString",
+                target: "dom.editor.value"
             }
         },
+
+        // modelListeners: {
+        //     editorString: {
+        //         excludeSource: "init",
+        //         this: "{that}.dom.editor",
+        //         method: "val",
+        //         args: ["{that}.model.editorString"]
+        //     }
+        // },
 
         invokers: {
             handleEditorChange: {
