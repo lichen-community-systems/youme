@@ -23,7 +23,7 @@
                 container: "{that}.dom.inputs",
                 options: {
                     desiredPortSpecs: [
-                        { name: "Launchpad Pro .+ (MIDI|Standalone Port)" },
+                        { name: "Launchpad Pro .+ (MIDI|Standalone Port)$" },
                         { name: "nanoPAD2"}
                     ],
                     listeners: {

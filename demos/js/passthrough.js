@@ -23,7 +23,7 @@
                 container: "{that}.dom.input",
                 options: {
                     desiredPortSpec: {
-                        name: "Launchpad Pro .+ (MIDI|Standalone Port)"
+                        name: "Launchpad Pro .+ (MIDI|Standalone Port)$"
                     },
                     listeners: {
                         "onMessage.sendToOutput": "{output}.events.sendMessage.fire"
