@@ -15,8 +15,7 @@
         },
 
         model: {
-            errorString: false,
-            editorString: ""
+            errorString: false
         },
 
         selectors: {
@@ -27,27 +26,37 @@
         modelRelay: {
             errorStyle: {
                 source: "{that}.model.errorString",
-                target: "dom.error.class.console-visible"
+                target: "{that}.model.dom.error.class.console-visible"
             },
             errorText: {
                 source: "{that}.model.errorString",
-                target: "dom.error.text"
-            },
-            // This relay doesn't seem to do what we need on startup, i.e. the initial value is lost.
-            editorString: {
-                source: "{that}.model.editorString",
-                target: "dom.editor.value"
+                target: "{that}.model.dom.error.text"
             }
+
+            // TODO: Revisit once FLUID-6746 is resolved.
+            //
+            // This relay doesn't do what we need on startup, i.e. the initial value is lost.
+            //
+            // See: https://issues.fluidproject.org/browse/FLUID-6746
+            //
+            // If I comment out the default value above, then the relay works on startup but does not consistently
+            // relay changes between the two editors.  Seems like the first one to change "wins", i.e. you can't then
+            // switch to the other editor, tweak the value, and send a change back the other way.
+            //
+            // editorString: {
+            //     source: "{that}.model.editorString",
+            //     target: "{that}.model.dom.editor.value"
+            // }
         },
 
-        // modelListeners: {
-        //     editorString: {
-        //         excludeSource: "init",
-        //         this: "{that}.dom.editor",
-        //         method: "val",
-        //         args: ["{that}.model.editorString"]
-        //     }
-        // },
+        modelListeners: {
+            editorString: {
+                excludeSource: "init",
+                this: "{that}.dom.editor",
+                method: "val",
+                args: ["{that}.model.editorString"]
+            }
+        },
 
         invokers: {
             handleEditorChange: {
@@ -118,7 +127,7 @@
                 }
             ],
             jsonString: {
-                excludeSource: "local",
+                // excludeSource: "local",
                 funcName: "youme.demos.console.parseString",
                 args: ["{that}"]
             }
