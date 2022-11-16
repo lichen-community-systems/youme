@@ -89,7 +89,7 @@ In addition to the events for the base `youme.connection` grade, this grade has 
 | `onSysex`       | An event that is fired when a "sysex" message is received.          |
 | `onTuneRequest` | An event that is fired when a "tune request" message is received.   |
 
-See [the WebMIDI API documentation](https://www.midi.org/specifications-old/item/table-1-summary-of-midi-message) for
+See [the MIDI specification](https://www.midi.org/specifications-old/item/table-1-summary-of-midi-message) for
 more information on the meaning of the above events / message types.
 
 ## `youme.connection.output`
