@@ -13,7 +13,7 @@ This page describes the test components and functions YouMe provides to help wri
 This component emulates the core behaviour of the WebMIDI API, and provides mocks of the objects the WebMIDI API would
 provide if used in the same way. You can use this to test things like:
 
-1. How your code responds as ports connect and disconnect.
+1. How your code responds as ports are connected and disconnected.
 2. How your code responds to (simulated) incoming messages on a port.
 3. Whether outgoing messages are sent as expected.
 

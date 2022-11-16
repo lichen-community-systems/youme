@@ -2,7 +2,7 @@
 
 ## Core Components
 
-The core components in YouMe can be used to request access via the WebMIDI API, to interact with ports, and to
+The core components in YouMe can be used to request access to MIDI devices, to interact with ports, and to
 connect ports to each other. See [the core component docs](./core-components.md) for more details.
 
 ## UI Components

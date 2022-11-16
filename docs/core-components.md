@@ -118,7 +118,7 @@ In addition to the events for the base `youme.connection` grade, this grade has 
 | `sendSysex`       | An event that is fired to send a "sysex" message.          |
 | `sendTuneRequest` | An event that is fired to send a "tune request" message.   |
 
-See [the WebMIDI API documentation](https://www.midi.org/specifications-old/item/table-1-summary-of-midi-message) for
+See [the MIDI specification](https://www.midi.org/specifications-old/item/table-1-summary-of-midi-message) for
 more information on the meaning of the above events / message types.
 
 ## `youme.portConnector`
@@ -136,7 +136,7 @@ of `youme.system` (see above). The base grade should not be used directly, you s
 
 ### Port Specifications
 
-A port specification is an object that describes the port to which we wish to connect. Consists of or more of the
+A port specification is an object that describes the port to which we wish to connect. Consists of one or more of the
 following fields:
 
 | Name           | Type       | Description                                                                 |
