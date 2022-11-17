@@ -13,7 +13,7 @@ good idea to consult the manual for your device or software to confirm what it s
 Each message type is describe, and an example of the message in YouMe's JSON format is provided.  The `type` parameter
 in each example corresponds to the type of message itself, any other parameters are described including maximum and
 minimum values where possible.  Although many sources such as older MIDI device manuals and online references use
-hexadecimal values, all examples, maximum and minimum values in this page are expressed as decimal values.  In all
+hexadecimal values, all examples, maximum and minimum values in this page are expressed using decimal values.  In all
 cases, only integer values are supported.
 
 ## Active Sense
