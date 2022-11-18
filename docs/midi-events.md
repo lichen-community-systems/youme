@@ -8,18 +8,20 @@ page provides a brief summary of each type of event/message. For more details ab
 Please note that most hardware and software solutions only support a subset of the range of possible events. It's a
 good idea to consult the manual for your device or software to confirm what it supports.
 
-## Conventions Used in this page.
+## Parameter Value Conventions
 
-Each message type is describe, and an example of the message in YouMe's JSON format is provided.  The `type` parameter
-in each example corresponds to the type of message itself, any other parameters are described including maximum and
-minimum values where possible.  Although many sources such as older MIDI device manuals and online references use
-hexadecimal values, all examples, maximum and minimum values in this page are expressed using decimal values.  In all
-cases, only integer values are supported.
+In this page, an example of the message in YouMe's JSON format is provided for each type of message. The `type`
+parameter in each example corresponds to the type of message itself, and is the only parameter whose value is a string.
+All other parameters are numeric. For all numeric parameters, only whole number (integer) values are supported.
+
+Although many sources such as older MIDI device manuals and online references use hexadecimal values, on this page all
+examples, maximum and minimum values use decimal values. You can of course use hexadecimal values in Javascript by
+prepending the hex code with zero and an "x", as in `0xFF` or `0xff`.
 
 ## Active Sense
 
-A "heartbeat" message sent by some devices to let a receiver know that they are still active. In the JSON format used
-by YouMe, this message would look something like:
+A "heartbeat" message which some devices send to let a receiver know that they are still active. In the JSON format used
+by YouMe, this message looks something like:
 
 ```json5
 {
@@ -27,17 +29,18 @@ by YouMe, this message would look something like:
 }
 ```
 
-There are no additional parameters beyond the required `type` value.
+There are no additional parameters beyond the required `type` value, which must be set to `activeSense` for this message
+type.
 
 ## Aftertouch
 
-Sent to indicate that the "pressure" of an existing note should change from the value indicated by the original
-"note on" message (see below). There are two types of aftertouch, "channel", which affects all notes playing on a given
-channel, and "polyphonic", which affects only a single note playing on a single channel.
+Sent to indicate that the "pressure" of an existing note should change from the value indicated by the "velocity" of the
+original "note on" message (see below). There are two types of aftertouch, "channel", and "polyphonic".
 
 ### "Channel" Aftertouch
 
-In the JSON format used by YouMe, a "channel" aftertouch message would look something like:
+"Channel" aftertouch messages affect all notes playing on a given channel. In the JSON format used by YouMe, a "channel"
+aftertouch message looks something like:
 
 ```json5
 {
@@ -47,6 +50,9 @@ In the JSON format used by YouMe, a "channel" aftertouch message would look some
 }
 ```
 
+In addition to the required `type` parameter (which in this case must be set to `aftertouch`), "channel" aftertouch
+messages require the following parameters:
+
 | Parameter  | Description                                               | Minimum | Maximum |
 |------------|-----------------------------------------------------------|---------|---------|
 | `channel`  | The MIDI channel this message should affect.              | 0       | 15      |
@@ -54,7 +60,8 @@ In the JSON format used by YouMe, a "channel" aftertouch message would look some
 
 ### "Polyphonic" Aftertouch
 
-In the JSON format used by YouMe, a "polyphonic" aftertouch message would look something like:
+A "Polyphonic" aftertouch message affects only a single note playing on a single channel. In the JSON format used by
+YouMe, a "polyphonic" aftertouch message looks something like:
 
 ```json5
 {
@@ -65,17 +72,19 @@ In the JSON format used by YouMe, a "polyphonic" aftertouch message would look s
 }
 ```
 
+In addition to the parameters used for a "channel" aftertouch message, polyphonic messages require the following
+parameters:
+
 | Parameter  | Description                                  | Minimum | Maximum |
 |------------|----------------------------------------------|---------|---------|
-| `channel`  | The MIDI channel this message should affect. | 0       | 15      |
 | `note`     | The specific playing note to update.         | 0       | 127     |
-| `pressure` | The new "velocity" for the specified note.   | 0       | 127     |
 
 ## Clock
 
-Used to synchronise performance across devices to the same "clock". Typically, 24 clock messages are sent per quarter
-note. Please note that many devices that can receive control messages only synchronise with them when configured to,
-typically by a menu option or button. In the JSON format used by YouMe, this message would look something like:
+Used to synchronise performance across devices to the same "clock". According to the MIDI specification, 24 clock
+messages should be sent per quarter note. Please note that many devices that can receive clock messages only
+synchronise with them when configured to, typically using a menu option or button. In the JSON format used by YouMe,
+this message looks something like:
 
 ```json5
 {
@@ -83,12 +92,12 @@ typically by a menu option or button. In the JSON format used by YouMe, this mes
 }
 ```
 
-There are no additional parameters beyond the required `type` value.
+There are no additional parameters beyond the required `type` value, which must be set to `clock` for this message type.
 
 ## Continue
 
-Resume playing the current sequence from the last position at which it was stopped. In the JSON format used by YouMe,
-this message would look something like:
+Resume playing the current sequence from the last position at which it was stopped (or the position indicated by
+a "song pointer" message, see below). In the JSON format used by YouMe, this message looks something like:
 
 ```json5
 {
@@ -96,12 +105,13 @@ this message would look something like:
 }
 ```
 
-There are no additional parameters beyond the required `type` value.
+There are no additional parameters beyond the required `type` value, which must be set to `continue' for this message
+type.
 
 ## Control
 
 Indicates a change in the position of a "control" (slider, dial, foot pedal, et cetera). In the JSON format used by
-YouMe, this message would look something like:
+YouMe, this message looks something like:
 
 ```json5
 {
@@ -112,6 +122,9 @@ YouMe, this message would look something like:
 }
 ```
 
+In addition to the required `type` parameter (which in this case must be set to `control`), "control"
+messages require the following parameters:
+
 | Parameter | Description                                  | Minimum | Maximum |
 |-----------|----------------------------------------------|---------|---------|
 | `channel` | The MIDI channel this message should affect. | 0       | 15      |
@@ -121,7 +134,7 @@ YouMe, this message would look something like:
 ## Note On
 
 Indicates that a note has been depressed. Conveys the pitch (note) as well as how hard the note was initially pressed
-(velocity). In the JSON format used by YouMe, this message would look something like:
+(velocity). In the JSON format used by YouMe, this message looks something like:
 
 ```json5
 {
@@ -132,6 +145,9 @@ Indicates that a note has been depressed. Conveys the pitch (note) as well as ho
 }
 ```
 
+In addition to the required `type` parameter (which in this case must be set to `noteOn`), "note on"
+messages require the following parameters:
+
 | Parameter  | Description                                     | Minimum | Maximum |
 |------------|-------------------------------------------------|---------|---------|
 | `channel`  | The MIDI channel this message should affect.    | 0       | 15      |
@@ -140,8 +156,7 @@ Indicates that a note has been depressed. Conveys the pitch (note) as well as ho
 
 ## Note Off
 
-Indicates that a note has been released. Note that some devices send a "note on" message with a velocity of zero instead
-of sending "note off" messages. In the JSON format used by YouMe, this message would look something like:
+Indicates that a note has been released. In the JSON format used by YouMe, this message looks something like:
 
 ```json5
 {
@@ -151,18 +166,24 @@ of sending "note off" messages. In the JSON format used by YouMe, this message w
 }
 ```
 
+In addition to the required `type` parameter (which in this case must be set to `noteOff`), "note off"
+messages require the following parameters:
+
 | Parameter  | Description                                  | Minimum | Maximum |
 |------------|----------------------------------------------|---------|---------|
 | `channel`  | The MIDI channel this message should affect. | 0       | 15      |
 | `note`     | The note to stop playing.                    | 0       | 127     |
 
+_Note:_ If you are listening for these messages from another MIDI devices or software solution, you should be aware that
+some implementations send a "note on" message with a velocity of zero rather than sending "note off" messages.
+
 ## Pitchbend
 
-Indicates a "bend" in pitch for all notes playing on the current channel.  Although the range supported is constant,
-each receiver decides how to apply that range.  For example, many keyboards interpret a full downward "bend" of the
-pitchbend wheel as a request to shift all playing notes down a full step.  Others allow you to configure the meaning
-of a full bend, so that the same action might bend all notes down a full octave.  In the JSON format used by YouMe, this
-message would look something like:
+Indicates a "bend" in pitch for all notes playing on the current channel. Although the range supported is constant,
+each receiver decides how to apply that range. For example, many keyboards interpret a full downward "bend" of the
+pitchbend wheel as a request to shift all playing notes down a full step. Others allow you to configure the meaning
+of a full bend, so that the same action might bend all notes down a full octave. In the JSON format used by YouMe, this
+message looks something like:
 
 ```json5
 {
@@ -172,12 +193,15 @@ message would look something like:
 }
 ```
 
+In addition to the required `type` parameter (which in this case must be set to `pitchbend`), "pitch bend"
+messages require the following parameters:
+
 | Parameter | Description                                  | Minimum | Maximum |
 |-----------|----------------------------------------------|---------|---------|
 | `channel` | The MIDI channel this message should affect. | 0       | 15      |
 | `value`   | The amount of pitchbend to apply.            | 0       | 16,383  |
 
-Note that the center of the range is 8192>  Values lower than 8192 "bend" the pitch lower, and values higher than 8192
+Note that the center of the range is 8192. Values lower than 8192 "bend" the pitch lower, and values higher than 8192
 "bend" the pitch higher.
 
 ## Program Change
@@ -193,6 +217,9 @@ look something like:
 }
 ```
 
+In addition to the required `type` parameter (which in this case must be set to `program`), "program change"
+messages require the following parameters:
+
 | Parameter | Description                                  | Minimum | Maximum |
 |-----------|----------------------------------------------|---------|---------|
 | `channel` | The MIDI channel this message should affect. | 0       | 15      |
@@ -200,7 +227,7 @@ look something like:
 
 ## Reset
 
-Reset a receiver to its "power up" settings.  In the JSON format used by YouMe, this message would look something like:
+Reset a receiver to its "power up" settings. In the JSON format used by YouMe, this message looks something like:
 
 ```json5
 {
@@ -208,12 +235,12 @@ Reset a receiver to its "power up" settings.  In the JSON format used by YouMe, 
 }
 ```
 
-There are no additional parameters beyond the required `type` value.
+There are no additional parameters beyond the required `type` value, which must be set to `reset` for this message type.
 
 ## Song Pointer
 
-A message indicating which "song position" (in "beats) the device should play at.
-In the JSON format used by YouMe, this message would look something like:
+Sometimes referred to as "song pointer position" or SPP messages. Indicates which "song position" (in "beats) the
+device should play a sequence from. In the JSON format used by YouMe, this message looks something like:
 
 ```json5
 {
@@ -222,16 +249,19 @@ In the JSON format used by YouMe, this message would look something like:
 }
 ```
 
+In addition to the required `type` parameter (which in this case must be set to `songPointer`), "song pointer"
+messages requires the following parameter:
+
 | Parameter | Description                                                                                                 | Minimum | Maximum |
 |-----------|-------------------------------------------------------------------------------------------------------------|---------|---------|
 | `value`   | The "song position", i.e. the number of beats (see below) into the sequence the receiver should be playing. | 0       | 16,383  |
 
-A "beat" in MIDI terms is six clock "ticks".  Since a quarter note is 24 "ticks", you can think of a "beat" as a
+A "beat" in MIDI terms is six clock "ticks". Since a quarter note is 24 "ticks", you can think of a "beat" as a
 sixteenth note.
 
 ## Song Select
 
-In the JSON format used by YouMe, this message would look something like:
+In the JSON format used by YouMe, this message looks something like:
 
 ```json5
 {
@@ -240,13 +270,16 @@ In the JSON format used by YouMe, this message would look something like:
 }
 ```
 
+In addition to the required `type` parameter (which in this case must be set to `songSelect`), "song select"
+messages require the following parameter:
+
 | Parameter | Description              | Minimum | Maximum |
 |-----------|--------------------------|---------|---------|
 | `value`   | The song number to play. | 0       | 127     |
 
 ## Start
 
-Start the current sequence from the beginning. In the JSON format used by YouMe, this message would look something like:
+Start the current sequence from the beginning. In the JSON format used by YouMe, this message looks something like:
 
 ```json5
 {
@@ -254,11 +287,11 @@ Start the current sequence from the beginning. In the JSON format used by YouMe,
 }
 ```
 
-There are no additional parameters beyond the required `type` value.
+There are no additional parameters beyond the required `type` value, which must be set to `start` for this message type.
 
 ## Stop
 
-Stop the current sequence. In the JSON format used by YouMe, this message would look something like:
+Stop the current sequence. In the JSON format used by YouMe, this message looks something like:
 
 ```json5
 {
@@ -266,7 +299,7 @@ Stop the current sequence. In the JSON format used by YouMe, this message would 
 }
 ```
 
-There are no additional parameters beyond the required `type` value.
+There are no additional parameters beyond the required `type` value, which must be set to `stop` for this message type.
 
 ## System Exclusive
 
@@ -286,6 +319,9 @@ would omit the leading byte (`0xF0`) and trailing byte (`0xF7`) and your "data" 
 }
 ```
 
+In addition to the required `type` parameter (which in this case must be set to `sysex`), "note on"
+messages require the following parameter:
+
 | Parameter | Description                                       |
 |-----------|---------------------------------------------------|
 | `data`    | An array of bytes representing the sysex payload. |
@@ -293,7 +329,7 @@ would omit the leading byte (`0xF0`) and trailing byte (`0xF7`) and your "data" 
 ## Tune Request
 
 A message sent to analog synthesizers requesting that they tune their oscillators. In the JSON format used by YouMe,
-this message would look something like:
+this message looks something like:
 
 ```json5
 {
@@ -301,4 +337,5 @@ this message would look something like:
 }
 ```
 
-There are no additional parameters beyond the required `type` value.
+There are no additional parameters beyond the required `type` value, which must be set to `tuneRequest` for this message
+type.
