@@ -10,9 +10,9 @@ good idea to consult the manual for your device or software to confirm what it s
 
 ## Parameter Value Conventions
 
-In this page, an example of the message in YouMe's JSON format is provided for each type of message. The `type`
-parameter in each example corresponds to the type of message itself, and is the only parameter whose value is a string.
-All other parameters are numeric. For all numeric parameters, only whole number (integer) values are supported.
+For each type of event/message, this page provides a sample message in YouMe's JSON format. The `type` parameter in each
+example corresponds to the type of message itself, and is the only parameter whose value is a string. All other
+parameters are numeric. For all numeric parameters, only whole number (integer) values are supported.
 
 Although many sources such as older MIDI device manuals and online references use hexadecimal values, on this page all
 examples, maximum and minimum values use decimal values. You can of course use hexadecimal values in Javascript by
@@ -105,7 +105,7 @@ a "song pointer" message, see below). In the JSON format used by YouMe, this mes
 }
 ```
 
-There are no additional parameters beyond the required `type` value, which must be set to `continue' for this message
+There are no additional parameters beyond the required `type` value, which must be set to `continue` for this message
 type.
 
 ## Control
