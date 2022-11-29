@@ -49,7 +49,7 @@
         invokers: {
             requestAccess: {
                 funcName: "youme.system.requestAccess",
-                args: ["{that}"]
+                args: ["{that}", "{that}.options.sysex", "{that}.options.software", "{that}.events.onAccessGranted.fire", "{that}.events.onAccessError.fire", "{that}.refreshPorts"] // sysex, software, onAccessGrantedFn, onAccessErrorFn, refreshPortFn
             },
 
             refreshPorts: {
@@ -85,19 +85,18 @@
         }
     });
 
-
     // A wrapper for youme.requestAccess that waits to satisfy the promise until additional startup steps are complete.
-    youme.system.requestAccess = function (that) {
+    youme.system.requestAccess = function (that, sysex, software, onAccessGrantedFn, onAccessErrorFn, refreshPortFn) {
         // We use a wrapped promise to ensure that our followup tasks are completed before any events are fired.
         var wrappedPromise = fluid.promise();
 
         try {
-            var p = youme.requestAccess(that.options.sysex, that.options.software, that.events.onAccessGranted.fire, that.events.onAccessError.fire);
+            var p = youme.requestAccess(sysex, software, onAccessGrantedFn, onAccessErrorFn);
 
             p.then(function (access) {
                 that.applier.change("access", access);
-                that.refreshPorts();
-                access.onstatechange = that.refreshPorts;
+                refreshPortFn();
+                access.onstatechange = refreshPortFn;
                 wrappedPromise.resolve();
             }, wrappedPromise.reject);
         }

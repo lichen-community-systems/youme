@@ -26,7 +26,7 @@
     ],
     "readmeFilename": "README.md",
     "dependencies": {
-        "infusion": "4.2.0",
+        "infusion": "4.5.0",
         "normalize.css": "8.0.1",
         "npm-audit-resolver": "2.3.1"
     },
