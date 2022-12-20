@@ -14,7 +14,9 @@ YouMe is published to npm and can be installed in your project using a command l
 The components in this package require:
 
 1. The dependencies of this package, which you can install using a command like `npm install`.
-2. A compatible browser (at time of writing, only Chromium and derivatives like Chrome, Edge, and Opera).
+2. A compatible browser.  At time of writing, this includes:
+   - Chromium and derivatives, like Chrome, Edge, and Opera.
+   - Firefox 108 or higher.
 
 ## Try It!
 
