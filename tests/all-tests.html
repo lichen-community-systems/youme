@@ -1,0 +1,51 @@
+<!--
+  ~ Copyright 2022, Tony Atkins
+  ~ Copyright 2011-2020, Colin Clark
+  ~
+  ~  Licensed under the MIT license, see LICENSE for details.
+  -->
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Youme: All Tests</title>
+
+    <link rel="stylesheet" media="screen" href="../node_modules/infusion/tests/lib/qunit/css/qunit.css" />
+    <link rel="stylesheet" href="../node_modules/infusion/tests/lib/qunit/addons/composite/qunit-composite.css">
+
+    <script src="../node_modules/infusion/dist/infusion-all.js"></script>
+
+    <script src="../node_modules/infusion/tests/lib/qunit/js/qunit.js"></script>
+    <script src="/testem.js"></script>
+    <script src="../node_modules/infusion/tests/lib/qunit/addons/composite/qunit-composite.js"></script>
+
+    <script>
+        var rawTestSuites = {
+            "YouMe Tests": [
+                "/system-tests.html",
+                "/connection-tests.html",
+                "/findPorts-tests.html",
+                "/message-tests.html",
+                "/webMidiMock-tests.html",
+                "/multiPortConnector-tests.html",
+                // TODO: These have to be run last or they will cause problems with subsequent tests.
+                // I suspect additional listener calls or faulty start/stop logic are to blame.
+                "/portConnector-tests.html"
+            ]
+        };
+
+        fluid.each(rawTestSuites, function (tests, moduleName) {
+            var testsWithPaths = tests.map(function (entry) {
+                var leader = typeof Testem === "undefined" ? "./html" : "/tests/html";
+                return leader + entry;
+            });
+            QUnit.testSuites(moduleName, testsWithPaths);
+        });
+    </script>
+</head>
+<body>
+    <div id="qunit"></div>
+    <div id="qunit-fixture">
+</div>
+</body>
+</html>

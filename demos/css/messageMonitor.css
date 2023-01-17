@@ -1,0 +1,49 @@
+/*
+ * Copyright 2022, Tony Atkins
+ * Copyright 2011-2020, Colin Clark
+ *
+ *  Licensed under the MIT license, see LICENSE for details.
+ */
+
+body {
+    padding: 2rem;
+}
+
+.message-monitor {
+    width: 100%;
+}
+
+.message-monitor-inner-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    width: 100%;
+}
+
+.message-monitor-log {
+    border: 1px solid white;
+    display: flex;
+    flex-direction: column-reverse;
+    height: 15rem;
+    overflow-x: auto;
+    overflow-y: scroll;
+}
+
+.message-monitor-log-message {
+    padding: 0.75rem;
+}
+
+.message-monitor-log-message:not(:first-of-type) {
+    border-bottom: 1px dashed grey;
+}
+
+.message-monitor-reset-button {
+    font-size: 1.5rem;
+    padding: 0.5rem;
+}
+
+@media (prefers-color-scheme: light) {
+    .message-monitor-log {
+        border: 1px solid #969696;
+    }
+}

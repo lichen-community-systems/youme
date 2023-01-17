@@ -1,0 +1,41 @@
+<!--
+  ~ Copyright 2022, Tony Atkins
+  ~ Copyright 2011-2020, Colin Clark
+  ~
+  ~  Licensed under the MIT license, see LICENSE for details.
+  -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>"Message Monitor" Demo.</title>
+
+    <script src="../node_modules/infusion/dist/infusion-all.js"></script>
+
+    <script src="../src/js/core.js"></script>
+    <script src="../src/js/system.js"></script>
+    <script src="../src/js/messageEventHolders.js"></script>
+    <script src="../src/js/connection.js"></script>
+    <script src="../src/js/multiPortConnector.js"></script>
+
+    <script src="../src/js/ui/templateRenderer.js"></script>
+    <script src="../src/js/ui/multiSelectBox.js"></script>
+    <script src="../src/js/ui/multiPortSelectorView.js"></script>
+    <script src="../src/js/ui/svgIcon.js"></script>
+
+    <script src="./js/messageMonitor.js"></script>
+
+    <link type="text/css" rel="stylesheet" href="../src/css/youme.css"/>
+    <link type="text/css" rel="stylesheet" href="./css/messageMonitor.css"/>
+</head>
+<body>
+<h3>"Message Monitor" Demo</h3>
+
+<p>All MIDI messages received from the input(s) will be displayed onscreen.</p>
+
+<div class="message-monitor"></div>
+
+<script>
+    var messageMonitor = youme.demos.messageMonitor(".message-monitor");
+</script>
+</body>
+</html>

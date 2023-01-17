@@ -1,0 +1,41 @@
+{
+    "sources": {
+        "md": [
+            "./*.md",
+            "./docs/*.md"
+        ],
+        "js": [
+            "./src/**/*.js",
+            "./demos/js/*.js",
+            "./tests/**/*.js",
+            "./*.js"
+        ],
+        "json": [
+            "./*.json",
+            "!./package-lock.json",
+            "!./audit-resolve.json"
+        ],
+        "json5": [
+            "./*.json5"
+        ],
+        "css": [
+            "./src/css/*.css",
+            "./demos/css/*.css"
+        ],
+        "other": [
+            "./.*",
+            "!./package-lock.json",
+            "!./audit-resolve.json"
+        ]
+    },
+    "lintspaces": {
+        "newlines": {
+            "includes": [
+                "./src/**/*",
+                "./tests/**/*",
+                "./*",
+                "!./audit-resolve.json"
+            ]
+        }
+    }
+}

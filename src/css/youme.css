@@ -1,0 +1,101 @@
+/*
+ * Copyright 2022, Tony Atkins
+ * Copyright 2011-2020, Colin Clark
+ *
+ *  Licensed under the MIT license, see LICENSE for details.
+ */
+
+.youme-select-container {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.youme-select,
+.youme-multi-select {
+    border: 1px solid #969696;
+    font-size: 1.25rem;
+    padding: 0.5rem;
+    width: 100%;
+}
+
+.youme-multi-select {
+    height: 10rem;
+}
+
+.youme-select {
+    border-radius: 1.5rem;
+    height: 4.5rem;
+    padding-left: 2rem;
+}
+
+.youme-select-label {
+    font-size: 1.25rem;
+}
+
+.youme-midi-icon {
+    background: none;
+    border: none;
+    border-radius: 50%;
+    height: 3rem;
+    padding: 0.3rem;
+    width: 3rem;
+}
+
+.youme-midi-icon svg {
+    height: 2.5rem;
+    width: 2.5rem;
+}
+
+.youme-midi-icon:focus {
+    border: 0.1rem solid white;
+    outline: none;
+    padding: 0.2rem;
+}
+
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: black;
+        color: white;
+    }
+
+    .youme-select {
+        border-color: #969696;
+    }
+
+    .youme-select:focus {
+        border-color: white;
+    }
+
+    path.youme-midi-icon-large-circle {
+        fill: white;
+    }
+
+    .youme-midi-icon:focus {
+        border-color: white;
+    }
+}
+
+@media (prefers-color-scheme: light) {
+    body {
+        background-color: white;
+        color: black;
+    }
+
+    .youme-select {
+        border-color: #595959;
+    }
+
+    .youme-select:focus {
+        border-color: black;
+    }
+
+    path.youme-midi-icon-large-circle {
+        fill: black;
+    }
+
+    .youme-midi-icon:focus {
+        border-color: black;
+    }
+}

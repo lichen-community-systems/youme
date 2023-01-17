@@ -1,0 +1,41 @@
+<!--
+  ~ Copyright 2022, Tony Atkins
+  ~ Copyright 2011-2020, Colin Clark
+  ~
+  ~  Licensed under the MIT license, see LICENSE for details.
+  -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>"Passthrough" Demo.</title>
+
+    <script src="../node_modules/infusion/dist/infusion-all.js"></script>
+
+    <script src="../src/js/core.js"></script>
+    <script src="../src/js/system.js"></script>
+    <script src="../src/js/messageEventHolders.js"></script>
+    <script src="../src/js/connection.js"></script>
+    <script src="../src/js/portConnector.js"></script>
+
+    <script src="../src/js/ui/templateRenderer.js"></script>
+    <script src="../src/js/ui/selectBox.js"></script>
+    <script src="../src/js/ui/portSelectorView.js"></script>
+    <script src="../src/js/ui/svgIcon.js"></script>
+
+    <script src="./js/passthrough.js"></script>
+
+    <link type="text/css" rel="stylesheet" href="../src/css/youme.css"/>
+    <link type="text/css" rel="stylesheet" href="./css/passthrough.css"/>
+</head>
+<body>
+<h3>"Passthrough" Demo</h3>
+
+<p>All MIDI messages received from the input will be relayed to the output.</p>
+
+<div class="passthrough"></div>
+
+<script>
+    var passthrough = youme.demos.passthrough(".passthrough");
+</script>
+</body>
+</html>
