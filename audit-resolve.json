@@ -31,6 +31,10 @@
     "1088581|nomnom>underscore": {
       "decision": "ignore",
       "madeAt": 1674064914750
+    },
+    "1088213|fluid-lint-all>eslint-plugin-markdown>remark-parse>trim>markdownlint-config-fluid>markdownlint>markdown-it": {
+      "decision": "ignore",
+      "madeAt": 1674065273796
     }
   },
   "rules": {},
