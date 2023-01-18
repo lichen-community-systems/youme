@@ -34,7 +34,7 @@
         "eslint-config-fluid": "2.1.1",
         "fluid-lint-all": "1.2.6",
         "fluid-testem": "2.1.15-dev.20230118T154006Z.444e3b4.GH-32",
-        "npm-audit-resolver": "2.3.1",
+        "npm-audit-resolver": "3.0.0-7",
         "testem": "3.10.1"
     },
     "scripts": {

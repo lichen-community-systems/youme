@@ -23,6 +23,14 @@
     "1088581|fluid-lint-all>jsonlint>nomnom>underscore": {
       "decision": "ignore",
       "madeAt": 1674056800415
+    },
+    "1086234|eslint-plugin-markdown>remark-parse>trim": {
+      "decision": "ignore",
+      "madeAt": 1674064791584
+    },
+    "1088581|nomnom>underscore": {
+      "decision": "ignore",
+      "madeAt": 1674064914750
     }
   },
   "rules": {},
