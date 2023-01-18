@@ -36,7 +36,7 @@ jobs:
         uses: bcomnes/cleanup-xvfb@v1
 
       - name: Security Audit
-        run: npm run audit
+        run: $(npm bin)/check-audit
 
       - name: Lint Code
         run: npm run lint
