@@ -4,7 +4,7 @@
  *
  *  Licensed under the MIT license, see LICENSE for details.
  */
-/*global jqUnit, Uint8Array*/
+/*global jqUnit */
 (function (fluid) {
     "use strict";
     var youme = fluid.registerNamespace("youme");

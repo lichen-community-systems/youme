@@ -4,7 +4,6 @@
  *
  *  Licensed under the MIT license, see LICENSE for details.
  */
-/*global Uint8Array*/
 (function (fluid) {
     "use strict";
     var youme = fluid.registerNamespace("youme");
