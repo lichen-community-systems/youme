@@ -1,0 +1,25 @@
+/*
+ * Copyright 2023, Tony Atkins
+ *
+ *  Licensed under the MIT license, see LICENSE for details.
+ */
+
+.smf-demo-output {
+    font-family: monospace;
+    font-size: 1.5rem;
+    padding: 2rem;
+}
+
+.smf-demo-error {
+    background-color: #fcc;
+    border: 1px solid red;
+    border-radius: 0.33rem;
+    color: black;
+    display: none;
+    font-size: 1.5rem;
+    padding: 2rem;
+}
+
+.smf-demo-error.has-error {
+    display: inherit;
+}

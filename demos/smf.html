@@ -1,0 +1,30 @@
+<!--
+  ~ Copyright 2023, Tony Atkins
+  ~
+  ~  Licensed under the MIT license, see LICENSE for details.
+  -->
+<html>
+    <head>
+        <title>"Standard" MIDI file demo.</title>
+
+        <script src="../node_modules/infusion/dist/infusion-all.js"></script>
+
+        <script src="../src/js/core.js"></script>
+        <script src="../src/js/smf.js"></script>
+        <script src="../src/js/ui/templateRenderer.js"></script>
+
+        <script src="./js/smf.js"></script>
+
+        <link type="text/css" rel="stylesheet" href="../src/css/youme.css"/>
+        <link type="text/css" rel="stylesheet" href="./css/smf.css"/>
+    </head>
+    <body>
+        <h2>"Standard" MIDI file demo.</h2>
+
+        <div class="smf"></div>
+
+        <script type="application/javascript">
+            var smf = youme.demos.smf(".smf");
+        </script>
+    </body>
+</html>
