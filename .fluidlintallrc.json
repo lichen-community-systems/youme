@@ -35,6 +35,10 @@
                 "./tests/**/*",
                 "./*",
                 "!./audit-resolve.json"
+            ],
+            "excludes": [
+                "./tests/midi/**/*.mid",
+                "./tests/midi/**/*.syx"
             ]
         }
     }
