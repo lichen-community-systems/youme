@@ -52,7 +52,7 @@ var testemComponent = youme.tests.testem({
         node_modules: "%youme/node_modules"
     },
     testemOptions: {
-        skip: "IE,Safari,Firefox,Headless Firefox"
+        skip: "IE,Safari,Headless Firefox,Brave,Opera"
     },
     coveragePort: 7017
 });
