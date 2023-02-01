@@ -29,8 +29,15 @@ jobs:
       - name: Install Node.js dependencies
         run: npm install
 
-      - name: Node Tests
+      - name: Browser Tests
         run: xvfb-run --auto-servernum npm test
+
+      - name: Archive Code Coverage Report
+        continue-on-error: true
+        uses: actions/upload-artifact@v2
+        with:
+          name: Code Coverage Report
+          path: reports/
 
       - name: Cleanup after xvfb
         uses: bcomnes/cleanup-xvfb@v1
