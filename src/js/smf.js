@@ -112,8 +112,15 @@
     };
 
     // TODO: This seems to work for the first example we used, but we need to verify this with a wider range of examples.
+    /**
+     *
+     * Parse a "raw" division byte into it a data structure.
+     *
+     * @param {number} rawDivision - An single unsigned 32-bit integer.
+     * @return {{type: string, resolution: string}} - The data structure that corresponds to the raw division byte.
+     */
     youme.smf.parseDivision = function (rawDivision) {
-        var divisionObject = { type: "Unknown", resolution: "Unknown" };
+        var divisionObject = { type: "Unknown" };
 
         // The fifteenth bit indicates which broad scheme (FPS or ticks per quarter note) is being used.  If it's set
         // we're using frames per second.  If not, we're using ticks per quarter note.
@@ -206,119 +213,10 @@
                 var payloadLength = metaEventLengthPayload.value;
                 index += metaEventLengthPayload.numBytes;
 
-                var payloadData = byteArray.slice(index, index + payloadLength);
+                var metaEventBytes = byteArray.slice(index, index + payloadLength);
                 index += payloadLength;
 
-                var metaEventObject = {};
-                eventObject.metaEvent = metaEventObject;
-
-                switch (metaEventType) {
-                    // FF 00 02 Sequence Number
-                    case 0x00:
-                        metaEventObject.type = "sequenceNumber";
-                        metaEventObject.value = youme.smf.combineBytes(payloadData);
-                        break;
-
-                    // FF 01 len text Text Event
-                    case 0x01:
-                        metaEventObject.type = "text";
-                        metaEventObject.value = String.fromCharCode.apply(null, payloadData);
-                        break;
-
-                    // FF 02 len text Copyright Notice
-                    case 0x02:
-                        metaEventObject.type = "copyright";
-                        metaEventObject.value = String.fromCharCode.apply(null, payloadData);
-                        break;
-
-                    // FF 03 len text Sequence/Track Name
-                    case 0x03:
-                        metaEventObject.type = "name";
-                        metaEventObject.value = String.fromCharCode.apply(null, payloadData);
-                        break;
-
-                    // FF 04 len text Instrument Name
-                    case 0x04:
-                        metaEventObject.type = "instrumentName";
-                        metaEventObject.value = String.fromCharCode.apply(null, payloadData);
-                        break;
-
-                    // FF 05 len text Lyric
-                    case 0x05:
-                        metaEventObject.type = "lyric";
-                        metaEventObject.value = String.fromCharCode.apply(null, payloadData);
-                        break;
-
-                    // FF 06 len text Marker
-                    case 0x06:
-                        metaEventObject.type = "marker";
-                        metaEventObject.value = String.fromCharCode.apply(null, payloadData);
-                        break;
-
-                    // FF 07 len text Cue Point
-                    case 0x07:
-                        metaEventObject.type = "cuePoint";
-                        metaEventObject.value = String.fromCharCode.apply(null, payloadData);
-                        break;
-
-                    // FF 20 01 cc MIDI Channel Prefix
-                    case 0x20:
-                        metaEventObject.type = "channelPrefix";
-                        metaEventObject.value = youme.smf.combineBytes(payloadData);
-                        break;
-
-                    // FF 2F 00 End of Track
-                    case 0x2F:
-                        metaEventObject.type = "endOfTrack";
-                        break;
-
-                    // FF 51 03 tttttt Set Tempo (in microseconds per MIDI quarter-note)
-                    case 0x51:
-                        metaEventObject.type = "tempo";
-                        // TODO: This seems nonsensical with our existing examples. Investigate.
-                        metaEventObject.value = youme.smf.combineBytes(payloadData);
-                        break;
-
-                    // FF 54 05 hr mn se fr ff SMPTE Offset
-                    case 0x54:
-                        metaEventObject.type = "smpteOffset";
-                        metaEventObject.hour = payloadData[0];
-                        metaEventObject.minute = payloadData[1];
-                        metaEventObject.second = payloadData[2];
-                        metaEventObject.frame = payloadData[3];
-                        metaEventObject.fractionalFrame = payloadData[4];
-                        break;
-
-                    // FF 58 04 nn dd cc bb Time Signature
-                    case 0x58:
-                        metaEventObject.type = "timeSignature";
-                        metaEventObject.nn = payloadData[0];
-                        metaEventObject.dd = payloadData[1];
-                        metaEventObject.cc = payloadData[2];
-                        metaEventObject.bb = payloadData[3];
-                        break;
-
-                    // FF 59 02 sf mi Key Signature
-                    case 0x59:
-                        // Need to read up more on key signature.
-                        metaEventObject.type = "keySignature";
-                        metaEventObject.sf = payloadData[0];
-                        metaEventObject.mi = payloadData[1] ? "minor" : "major";
-                        break;
-
-                    // FF 7F len data Sequencer Specific Meta-Event
-                    case 0x7F:
-                        metaEventObject.type = "sequencerSpecificMetaEvent";
-                        var sequencerSpecificMetaEventLength = youme.smf.extractVariableLengthValue(byteArray, index);
-                        var startPos = index + sequencerSpecificMetaEventLength.numBytes;
-                        var endPos = startPos + sequencerSpecificMetaEventLength.value;
-                        var sequencerSpecificMetaEventData = byteArray.slice(startPos, endPos);
-                        metaEventObject.value = sequencerSpecificMetaEventData;
-                        break;
-                    default:
-                        metaEventObject.type = "Unknown (0x" + (metaEventType).toString(16).padStart(2, 0) + ")";
-                        metaEventObject.value = payloadData;
-                }
+                eventObject.metaEvent = youme.smf.readMetaEvent(metaEventType, metaEventBytes);
             }
             // Handle "F0" sysex messages.
             else if (eventFirstByte === 0xF0) {
@@ -470,6 +368,125 @@
 
         var numBytes = index - startingPosition;
         return { value: combinedValue, numBytes: numBytes };
+    };
+
+    /**
+     *
+     * Parse a single "meta event".
+     *
+     * @param {number} metaEventType - The type of meta event.
+     * @param {Uint8Array} metaEventBytes - The bytes that compose the event, not including those indicating the length.
+     * @return {{}} - An object representing the event.
+     */
+    youme.smf.readMetaEvent = function (metaEventType, metaEventBytes) {
+        var metaEventObject = {};
+        switch (metaEventType) {
+            // FF 00 02 Sequence Number
+            case 0x00:
+                metaEventObject.type = "sequenceNumber";
+                metaEventObject.value = youme.smf.combineBytes(metaEventBytes);
+                break;
+
+            // FF 01 len text Text Event
+            case 0x01:
+                metaEventObject.type = "text";
+                metaEventObject.value = String.fromCharCode.apply(null, metaEventBytes);
+                break;
+
+            // FF 02 len text Copyright Notice
+            case 0x02:
+                metaEventObject.type = "copyright";
+                metaEventObject.value = String.fromCharCode.apply(null, metaEventBytes);
+                break;
+
+            // FF 03 len text Sequence/Track Name
+            case 0x03:
+                metaEventObject.type = "name";
+                metaEventObject.value = String.fromCharCode.apply(null, metaEventBytes);
+                break;
+
+            // FF 04 len text Instrument Name
+            case 0x04:
+                metaEventObject.type = "instrumentName";
+                metaEventObject.value = String.fromCharCode.apply(null, metaEventBytes);
+                break;
+
+            // FF 05 len text Lyric
+            case 0x05:
+                metaEventObject.type = "lyric";
+                metaEventObject.value = String.fromCharCode.apply(null, metaEventBytes);
+                break;
+
+            // FF 06 len text Marker
+            case 0x06:
+                metaEventObject.type = "marker";
+                metaEventObject.value = String.fromCharCode.apply(null, metaEventBytes);
+                break;
+
+            // FF 07 len text Cue Point
+            case 0x07:
+                metaEventObject.type = "cuePoint";
+                metaEventObject.value = String.fromCharCode.apply(null, metaEventBytes);
+                break;
+
+            // FF 20 01 cc MIDI Channel Prefix
+            case 0x20:
+                metaEventObject.type = "channelPrefix";
+                metaEventObject.value = youme.smf.combineBytes(metaEventBytes);
+                break;
+
+            // FF 2F 00 End of Track
+            case 0x2F:
+                metaEventObject.type = "endOfTrack";
+                break;
+
+            // FF 51 03 tttttt Set Tempo (in microseconds per MIDI quarter-note)
+            case 0x51:
+                metaEventObject.type = "tempo";
+                // TODO: This seems nonsensical with our existing examples. Investigate.
+                metaEventObject.value = youme.smf.combineBytes(metaEventBytes);
+                break;
+
+            // FF 54 05 hr mn se fr ff SMPTE Offset
+            case 0x54:
+                metaEventObject.type = "smpteOffset";
+                metaEventObject.hour = metaEventBytes[0];
+                metaEventObject.minute = metaEventBytes[1];
+                metaEventObject.second = metaEventBytes[2];
+                metaEventObject.frame = metaEventBytes[3];
+                metaEventObject.fractionalFrame = metaEventBytes[4];
+                break;
+
+            // FF 58 04 nn dd cc bb Time Signature
+            case 0x58:
+                metaEventObject.type = "timeSignature";
+                metaEventObject.numerator = metaEventBytes[0];
+                metaEventObject.denominator = metaEventBytes[1];
+                metaEventObject.midiClocksPerMetronomeClick = metaEventBytes[2];
+                metaEventObject.thirtySecondNotesPerMidiQuarterNote = metaEventBytes[3];
+                break;
+
+            // FF 59 02 sf mi Key Signature
+            case 0x59:
+                // Thanks to this page for clarifying how this value is encoded:
+                // https://www.recordingblogs.com/wiki/midi-key-signature-meta-message
+                metaEventObject.type = "keySignature";
+                var sign = (metaEventBytes[0] & 128) ? -1 : 1;
+                var value = metaEventBytes[0] & 127;
+                metaEventObject.sf = sign * value;
+                metaEventObject.mi = metaEventBytes[1] ? "minor" : "major";
+                break;
+
+            // FF 7F len data Sequencer Specific Meta-Event
+            case 0x7F:
+                metaEventObject.type = "sequencerSpecificMetaEvent";
+                metaEventObject.value = metaEventBytes;
+                break;
+            default:
+                metaEventObject.type = "Unknown (0x" + (metaEventType).toString(16).padStart(2, 0) + ")";
+                metaEventObject.value = metaEventBytes;
+        }
+        return metaEventObject;
     };
 
     // TODO: Encoding methods
