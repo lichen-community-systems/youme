@@ -432,7 +432,7 @@
             // FF 20 01 cc MIDI Channel Prefix
             case 0x20:
                 metaEventObject.type = "channelPrefix";
-                metaEventObject.value = youme.smf.combineBytes(metaEventBytes);
+                metaEventObject.value = metaEventBytes[0];
                 break;
 
             // FF 2F 00 End of Track
