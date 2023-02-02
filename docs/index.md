@@ -5,6 +5,12 @@
 The core components in YouMe can be used to request access to MIDI devices, to interact with ports, and to
 connect ports to each other. See [the core component docs](./core-components.md) for more details.
 
+### Standard MIDI Files
+
+YouMe provides functions for reading and writing
+["Standard" MIDI files](https://www.midi.org/specifications/file-format-specifications/standard-midi-files). See
+the ["Standard" MIDI file docs](./standard-midi-files.md) for more details.
+
 ## UI Components
 
 If you would like to display onscreen controls to do things like select your own MIDI port, you can use the grades
