@@ -26,28 +26,28 @@
         var index = 0;
 
         try {
-            // Load each section
+            // Load each "chunk"
             while (index < byteArray.byteLength) {
-                var sectionTypeBytes = byteArray.slice(index, index + 4);
+                var chunkTypeBytes = byteArray.slice(index, index + 4);
 
-                // The first four characters are the section type, either "MThd" (77 84 104 100) or "MTrk" (77 84 114 107).
+                // The first four characters are the chunk type, either "MThd" (77 84 104 100) or "MTrk" (77 84 114 107).
                 // This data consists of unsigned 8-bit integers.
-                var sectionType = String.fromCharCode.apply(null, sectionTypeBytes);
+                var chunkType = String.fromCharCode.apply(null, chunkTypeBytes);
                 index += 4;
 
-                // The next (bigEndian) 32 bits should be the length of the section.
-                var sectionLengthBytes = byteArray.slice(index, index + 4);
-                var sectionLength = youme.smf.combineBytes(sectionLengthBytes);
+                // The next (bigEndian) 32 bits should be the length of the chunk.
+                var chunkLengthBytes = byteArray.slice(index, index + 4);
+                var chunkLength = youme.smf.combineBytes(chunkLengthBytes);
                 index += 4;
 
-                switch (sectionType) {
+                switch (chunkType) {
                     case "MThd":
                         // Header
                         midiObject.header = youme.smf.parseHeader(byteArray, index);
                         break;
                     case "MTrk":
                         // Track
-                        var track = youme.smf.parseTrack(byteArray, index, sectionLength);
+                        var track = youme.smf.parseTrack(byteArray, index, chunkLength);
                         midiObject.tracks.push(track);
                         if (track.errors.length) {
                             midiObject.errors.push(...track.errors);
@@ -59,7 +59,7 @@
                 }
 
                 // Move the "stylus" forward before we continue to the next section.
-                index += sectionLength;
+                index += chunkLength;
             }
         }
         catch (error) {
@@ -111,7 +111,6 @@
         return headerObject;
     };
 
-    // TODO: This seems to work for the first example we used, but we need to verify this with a wider range of examples.
     /**
      *
      * Parse a "raw" division byte into it a data structure.
@@ -165,7 +164,7 @@
      * @param {Uint8Array} byteArray - The byte array representing the entire SMF file.
      * @param {number} startingPosition - The starting position in the byte array, not including the track length.
      * @param {number} trackLength - The length of the track, in bytes.
-     * @return {{metadata: {}, messages: *[]}|void} - An object representing the track.
+     * @return {{errors: *[], events: *[]}|void} - An object representing the track.
      *
      */
     youme.smf.parseTrack = function (byteArray, startingPosition, trackLength) {
@@ -194,9 +193,13 @@
             var deltaTimePayload = youme.smf.extractVariableLengthValue(byteArray, index);
             timeElapsed += deltaTimePayload.value;
 
-            // We store the time elapsed since the start of the song, which is more useful, as we can still make sense
-            // of when to do things even if we're filtering the list of messages.
+            // To avoid breaking use cases supported by individual "delta time" values, we preserve this information.
+            eventObject.deltaTime = deltaTimePayload.value;
+
+            // We also store the time elapsed since the start of the track, to make it easier to schedule everything
+            // at once relative to the start of the track.
             eventObject.timeElapsed = timeElapsed;
+
             index += deltaTimePayload.numBytes;
 
             var eventFirstByte = byteArray[index];
