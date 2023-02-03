@@ -328,18 +328,15 @@
         "test-illegal-message-all.mid": {
             name: "Jazz Soft > test-illegal-message-all.mid",
             fileKeys: ["jazzsoft-test-midi-files", "test-illegal-message-all.mid"],
-            // TODO: This should be `3` if MTC support is added, see https://github.com/continuing-creativity/youme/issues/8
-            expectedErrorCount: 5,
+            expectedErrorCount: 3,
             shouldFail: true
         },
 
-        // quarter-frame MTC, currently unsupported.
-        // TODO: Look at adding support, see https://github.com/continuing-creativity/youme/issues/8
+        // quarter-frame MTC.
         "test-illegal-message-f1-xx.mid": {
             name: "Jazz Soft > test-illegal-message-f1-xx.mid",
             fileKeys: ["jazzsoft-test-midi-files", "test-illegal-message-f1-xx.mid"],
-            expectedErrorCount: 2,
-            shouldFail: true
+            expectedErrorCount: 0
         },
 
         // Should parse, but have should have top-level, track, and event errors.

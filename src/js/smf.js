@@ -73,6 +73,8 @@
      *
      * Function to pack multiple 8-bit bytes into a single larger (16 or 32 bit) number.
      *
+     * Unsupported, non-API function.
+     *
      * @param {Uint8Array<number>} bytesToCombine - The individual bytes to combine.
      * @return {number} - The combined number.
      */
@@ -88,6 +90,8 @@
     /**
      *
      * Parse the header for an SMF file.
+     *
+     * Unsupported, non-API function.
      *
      * @param {Uint8Array} byteArray - An array of bytes.
      * @param {number} startingPosition - The starting position of the header.
@@ -114,6 +118,8 @@
     /**
      *
      * Parse a "raw" division byte into it a data structure.
+     *
+     * Unsupported, non-API function.
      *
      * @param {number} rawDivision - An single unsigned 32-bit integer.
      * @return {{type: string, resolution: string}} - The data structure that corresponds to the raw division byte.
@@ -160,6 +166,8 @@
     /**
      *
      * Parse a single "track" from an SMF file.
+     *
+     * Unsupported, non-API function.
      *
      * @param {Uint8Array} byteArray - The byte array representing the entire SMF file.
      * @param {number} startingPosition - The starting position in the byte array, not including the track length.
@@ -347,6 +355,8 @@
      * Parse a "variable length" number stored as a series of 7-bit numbers with the last bit reserved to indicate that
      * we have reached the end of the number.  This requires one byte for 0-127, more for anything higher.
      *
+     * Unsupported, non-API function.
+     *
      * @param {Uint8Array} byteArray - An array of "bytes" represented as 8-bit unsigned integers.
      * @param {number} startingPosition - The starting position in the byte array, not including the track length.
      * @return {{numBytes: number, value: number}} - The value of the number, plus the number of bytes it represents.
@@ -376,6 +386,8 @@
     /**
      *
      * Parse a single "meta event".
+     *
+     * Unsupported, non-API function.
      *
      * @param {number} metaEventType - The type of meta event.
      * @param {Uint8Array} metaEventBytes - The bytes that compose the event, not including those indicating the length.

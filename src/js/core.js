@@ -231,14 +231,13 @@
 
     // Unsupported, non-API function.
     youme.read.system = function (status, data) {
-        if (status === 1) {
-            return youme.messageFailure("quarter frame MTC");
-        }
-
         var fn;
         switch (status) {
             case 0:
                 fn = youme.read.sysex;
+                break;
+            case 1:
+                fn = youme.read.quarterFrameMTC;
                 break;
             case 2:
                 fn = youme.read.songPointer;
@@ -273,11 +272,6 @@
         }
 
         return fn(data);
-    };
-
-    // Unsupported, non-API function.
-    youme.messageFailure = function (type) {
-        fluid.fail("Unsupported MIDI message type '" + type + "'.");
     };
 
     // Unsupported, non-API function.
@@ -347,6 +341,57 @@
     youme.createSystemRealtimeMessageReaders(youme.systemRealtimeMessages);
 
 
+    // Unsupported, non-API function.
+    youme.read.quarterFrameMTC = function (data) {
+        var piece = data[1] >> 4;
+        var quarterFrameObject = {
+            type: "quarterFrameMTC",
+            piece: piece
+        };
+
+        var dataBits = data[1] & 15;
+
+        switch (piece) {
+            // Frame number, least significant bits.
+            case 0:
+                quarterFrameObject.frame = dataBits;
+                break;
+            // Frame number, most significant bits.
+            case 1:
+                quarterFrameObject.frame = (dataBits & 1) << 4;
+                break;
+            // Seconds, least significant bits.
+            case 2:
+                quarterFrameObject.second = dataBits;
+                break;
+            // Seconds, most significant bits.
+            case 3:
+                quarterFrameObject.second = (dataBits & 3) << 4;
+                break;
+            // Minutes, least significant bits.
+            case 4:
+                quarterFrameObject.minute = dataBits;
+                break;
+            // Minutes, most significant bits.
+            case 5:
+                quarterFrameObject.minute = dataBits << 4;
+                break;
+            // Hour, least significant bits.
+            case 6:
+                quarterFrameObject.hour = dataBits;
+                break;
+            // Rate and hour most significant bits.
+            case 7:
+                quarterFrameObject.rate = (dataBits & 6) >> 1;
+                quarterFrameObject.hour = (dataBits & 1) << 4;
+                break;
+            default:
+                fluid.fail("Cannot decode MIDI quarter frame MTC:\n" + fluid.prettyPrintJSON(data));
+        }
+
+        return quarterFrameObject;
+    };
+
     /**
      *
      * Take a MIDI messageSpec object and convert it to an array of raw bytes suitable for sending to a MIDI device.
@@ -382,6 +427,8 @@
                 return youme.write.largeValueMessage(14, midiMessage.channel, midiMessage);
             case "program":
                 return youme.write.programChange(midiMessage);
+            case "quarterFrameMTC":
+                return youme.write.quarterFrameMTC(midiMessage);
             case "reset":
                 return youme.write.singleByteMessage(15, 15);
             case "songPointer":
@@ -513,6 +560,55 @@
         framedData.set(data, 1);
 
         return framedData;
+    };
+
+    // Unsupported, non-API function.
+    youme.write.quarterFrameMTC = function (quarterFrameObject) {
+        var bytes = new Uint8Array(2);
+        bytes[0] = [0xF1];
+        bytes[1] = quarterFrameObject.piece << 4;
+
+        // TODO: Discuss refactoring youme.write.statusByte to safely handle combining nibbles.
+        switch (quarterFrameObject.piece) {
+            // Frame number, least significant bits.
+            case 0:
+                bytes[1] += quarterFrameObject.frame & 15;
+                break;
+            // Frame number, most significant bits.
+            case 1:
+                bytes[1] += (quarterFrameObject.frame & 240) >> 4;
+                break;
+            // Seconds, least significant bits.
+            case 2:
+                bytes[1] += quarterFrameObject.second & 15;
+                break;
+            // Seconds, most significant bits.
+            case 3:
+                bytes[1] += (quarterFrameObject.second >> 4) & 3;
+                break;
+            // Minutes, least significant bits.
+            case 4:
+                bytes[1] += quarterFrameObject.minute & 15;
+                break;
+            // Minutes, most significant bits.
+            case 5:
+                bytes[1] += (quarterFrameObject.minute >> 4) & 3;
+                break;
+            // Hour, least significant bits.
+            case 6:
+                bytes[1] += quarterFrameObject.hour & 15;
+                break;
+            // Rate and hour most significant bits.
+            case 7:
+                var ratePart = (quarterFrameObject.rate & 3) << 1;
+                var hourPart = (quarterFrameObject.hour >> 4) & 1;
+                bytes[1] += ratePart + hourPart;
+                break;
+            default:
+                fluid.fail("Invalid MIDI quarter frame MTC:\n" + fluid.prettyPrintJSON(quarterFrameObject));
+        }
+
+        return bytes;
     };
 
     /**

@@ -151,6 +151,79 @@
                     type: "activeSense"
                 },
                 bytes: [0xFE]
+            },
+
+            "quarter frame MTC, piece 0": {
+                messageSpec: {
+                    type: "quarterFrameMTC",
+                    piece: 0,
+                    frame: 15
+                },
+                bytes: [0xF1, 0x0F]
+            },
+
+            "quarter frame MTC, piece 1": {
+                messageSpec: {
+                    type: "quarterFrameMTC",
+                    piece: 1,
+                    frame: 16
+                },
+                bytes: [0xF1, 0x11]
+            },
+
+            "quarter frame MTC, piece 2": {
+                messageSpec: {
+                    type: "quarterFrameMTC",
+                    piece: 2,
+                    second: 15
+                },
+                bytes: [0xF1, 0x2F]
+            },
+
+            "quarter frame MTC, piece 3": {
+                messageSpec: {
+                    type: "quarterFrameMTC",
+                    piece: 3,
+                    second: 48
+                },
+                bytes: [0xF1, 0x33]
+            },
+
+            "quarter frame MTC, piece 4": {
+                messageSpec: {
+                    type: "quarterFrameMTC",
+                    piece: 4,
+                    minute: 14
+                },
+                bytes: [0xF1, 0x4E]
+            },
+
+            "quarter frame MTC, piece 5": {
+                messageSpec: {
+                    type: "quarterFrameMTC",
+                    piece: 5,
+                    minute: 48
+                },
+                bytes: [0xF1, 0x53]
+            },
+
+            "quarter frame MTC, piece 6": {
+                messageSpec: {
+                    type: "quarterFrameMTC",
+                    piece: 6,
+                    hour: 13
+                },
+                bytes: [0xF1, 0x6D]
+            },
+
+            "quarter frame MTC, piece 7": {
+                messageSpec: {
+                    type: "quarterFrameMTC",
+                    piece: 7,
+                    rate: 3,
+                    hour: 16
+                },
+                bytes: [0xF1, 0x77]
             }
         },
 
