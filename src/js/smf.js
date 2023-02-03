@@ -10,6 +10,14 @@
     fluid.registerNamespace("youme.smf");
 
     /**
+     * @typedef SmpteOffset
+     * @type {MidiTimeStampBase}
+     * @property {String} type - Must be set to `smpteOffset`.
+     * @property {number} fractionalFrame - A fraction of time within a single frame, between 0 and 1.
+     *
+     */
+
+    /**
      *
      * Parse an array of bytes that represent a "standard" MIDI file.
      *

@@ -562,50 +562,89 @@
         return framedData;
     };
 
-    // Unsupported, non-API function.
-    youme.write.quarterFrameMTC = function (quarterFrameObject) {
+    /**
+     * @typedef MidiTimeStampBase
+     * @type {Object}
+     * @property {number} hour - The hour of the day, from 0 to 23.
+     * @property {number} minute - The minute of the hour, from 0 to 59.
+     * @property {number} second - The second within the minute, from 0 to 59.
+     * @property {number} frame - Which frame within the second, generally between 0 and 29.
+     *
+     */
+
+    /**
+     * @typedef MTCQuarterFrameMessage
+     * @type {MidiTimeStampBase}
+     * @property {String} type - Must be set to `mtcQuarterFrameMessage`.
+     * @property {number} piece - Which "piece" of the overall structure you wish to send:
+     *                           0: Frame number (low "nibble")
+     *                           1: Frame number (high "nibble")
+     *                           2: Seconds (high "nibble")
+     *                           3: Seconds (low "nibble")
+     *                           4: Minutes (low "nibble")
+     *                           5: Minutes (high "nibble")
+     *                           6: Hour (high "nibble")
+     *                           7: Rate and Hour (low "nibble")
+     *
+     * @property {number} rate - An integer from 0 to 3 that represents which FPS standard is used:
+     *                           0: 24 FPS
+     *                           1: 25 FPS
+     *                           2: 29.75 FPS (Drop Frame)
+     *                           3: 30 FPS
+     *
+     */
+
+    /**
+     *
+     * Unsupported, non-API function.
+     *
+     * @param {MTCQuarterFrameMessage} quarterFrameMessage - A JSON object representing the quarter frame.
+     * @return {Uint8Array} - An array of bytes representing the quarter frame.
+     *
+     */
+    youme.write.quarterFrameMTC = function (quarterFrameMessage) {
         var bytes = new Uint8Array(2);
         bytes[0] = [0xF1];
-        bytes[1] = quarterFrameObject.piece << 4;
+        bytes[1] = quarterFrameMessage.piece << 4;
 
         // TODO: Discuss refactoring youme.write.statusByte to safely handle combining nibbles.
-        switch (quarterFrameObject.piece) {
+        switch (quarterFrameMessage.piece) {
             // Frame number, least significant bits.
             case 0:
-                bytes[1] += quarterFrameObject.frame & 15;
+                bytes[1] += quarterFrameMessage.frame & 15;
                 break;
             // Frame number, most significant bits.
             case 1:
-                bytes[1] += (quarterFrameObject.frame & 240) >> 4;
+                bytes[1] += (quarterFrameMessage.frame & 240) >> 4;
                 break;
             // Seconds, least significant bits.
             case 2:
-                bytes[1] += quarterFrameObject.second & 15;
+                bytes[1] += quarterFrameMessage.second & 15;
                 break;
             // Seconds, most significant bits.
             case 3:
-                bytes[1] += (quarterFrameObject.second >> 4) & 3;
+                bytes[1] += (quarterFrameMessage.second >> 4) & 3;
                 break;
             // Minutes, least significant bits.
             case 4:
-                bytes[1] += quarterFrameObject.minute & 15;
+                bytes[1] += quarterFrameMessage.minute & 15;
                 break;
             // Minutes, most significant bits.
             case 5:
-                bytes[1] += (quarterFrameObject.minute >> 4) & 3;
+                bytes[1] += (quarterFrameMessage.minute >> 4) & 3;
                 break;
             // Hour, least significant bits.
             case 6:
-                bytes[1] += quarterFrameObject.hour & 15;
+                bytes[1] += quarterFrameMessage.hour & 15;
                 break;
             // Rate and hour most significant bits.
             case 7:
-                var ratePart = (quarterFrameObject.rate & 3) << 1;
-                var hourPart = (quarterFrameObject.hour >> 4) & 1;
+                var ratePart = (quarterFrameMessage.rate & 3) << 1;
+                var hourPart = (quarterFrameMessage.hour >> 4) & 1;
                 bytes[1] += ratePart + hourPart;
                 break;
             default:
-                fluid.fail("Invalid MIDI quarter frame MTC:\n" + fluid.prettyPrintJSON(quarterFrameObject));
+                fluid.fail("Invalid MIDI quarter frame MTC:\n" + fluid.prettyPrintJSON(quarterFrameMessage));
         }
 
         return bytes;

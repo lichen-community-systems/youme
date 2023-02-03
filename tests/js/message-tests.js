@@ -363,4 +363,52 @@
     };
 
     youme.test.decodingTests();
+
+    /*
+
+        Although we have basic decoding and encoding tests above, because the values are split into "nibbles", the
+        examples all zeroed out one of the "nibbles" so that the results would match in both directions.
+
+        This test confirms that a complete timestamp can be broken down into quarter frames and reassembled without loss
+        of data. This test also confirms that the encoding ignores information it doesn't need for its particular
+        conversion.
+
+     */
+    jqUnit.test("Round-tripping tests for quarter frame MTC messages.", function () {
+        var fullTimestamp = {
+            rate: 3,
+            hour: 23,
+            minute: 59,
+            second: 59,
+            frame: 29
+        };
+
+        var quarterFramePieceMessages = [];
+        for (var piece = 0; piece < 8; piece++) {
+            var quarterFrameMTCObject = fluid.copy(fullTimestamp);
+            quarterFrameMTCObject.type = "quarterFrameMTC";
+            quarterFrameMTCObject.piece = piece;
+            var thisQuarterFrameBytes = youme.write.quarterFrameMTC(quarterFrameMTCObject);
+            var pureQuarterFrameMessage = youme.read.quarterFrameMTC(thisQuarterFrameBytes);
+            quarterFramePieceMessages.push(pureQuarterFrameMessage);
+        }
+
+        var assembledTimestamp = {
+            rate: 0,
+            hour: 0,
+            minute: 0,
+            second: 0,
+            frame: 0
+        };
+
+        fluid.each(quarterFramePieceMessages, function (singlePiece) {
+            fluid.each(["rate", "hour", "minute", "second", "frame"], function (property) {
+                if (singlePiece[property]) {
+                    assembledTimestamp[property] += singlePiece[property];
+                }
+            });
+        });
+
+        jqUnit.assertDeepEq("The original and reconstituted timestamp should match.", fullTimestamp, assembledTimestamp);
+    });
 })(fluid);
