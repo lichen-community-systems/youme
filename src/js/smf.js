@@ -28,7 +28,7 @@
         try {
             // Load each "chunk"
             while (index < byteArray.byteLength) {
-                var chunkTypeBytes = byteArray.slice(index, index + 4);
+                var chunkTypeBytes = byteArray.subarray(index, index + 4);
 
                 // The first four characters are the chunk type, either "MThd" (77 84 104 100) or "MTrk" (77 84 114 107).
                 // This data consists of unsigned 8-bit integers.
@@ -36,7 +36,7 @@
                 index += 4;
 
                 // The next (bigEndian) 32 bits should be the length of the chunk.
-                var chunkLengthBytes = byteArray.slice(index, index + 4);
+                var chunkLengthBytes = byteArray.subarray(index, index + 4);
                 var chunkLength = youme.smf.combineBytes(chunkLengthBytes);
                 index += 4;
 
@@ -97,13 +97,13 @@
     youme.smf.parseHeader = function (byteArray, startingPosition) {
         var headerObject = {};
 
-        var formatBytes = byteArray.slice(startingPosition, startingPosition + 2);
+        var formatBytes = byteArray.subarray(startingPosition, startingPosition + 2);
         headerObject.format = youme.smf.combineBytes(formatBytes);
 
-        var trackBytes = byteArray.slice(startingPosition + 2, startingPosition + 4);
+        var trackBytes = byteArray.subarray(startingPosition + 2, startingPosition + 4);
         headerObject.tracks = youme.smf.combineBytes(trackBytes);
 
-        var divisionBytes = byteArray.slice(startingPosition + 4, startingPosition + 6);
+        var divisionBytes = byteArray.subarray(startingPosition + 4, startingPosition + 6);
         var rawDivision = youme.smf.combineBytes(divisionBytes);
 
         headerObject.division = youme.smf.parseDivision(rawDivision);
@@ -216,7 +216,7 @@
                 var payloadLength = metaEventLengthPayload.value;
                 index += metaEventLengthPayload.numBytes;
 
-                var metaEventBytes = byteArray.slice(index, index + payloadLength);
+                var metaEventBytes = byteArray.subarray(index, index + payloadLength);
                 index += payloadLength;
 
                 eventObject.metaEvent = youme.smf.readMetaEvent(metaEventType, metaEventBytes);
@@ -250,7 +250,7 @@
                 var sysexPayloadLength = sysexPayload.value;
                 index += sysexPayload.numBytes;
 
-                var sysexData = byteArray.slice(index, index + sysexPayloadLength);
+                var sysexData = byteArray.subarray(index, index + sysexPayloadLength);
                 index += sysexPayloadLength;
 
                 try {
@@ -312,7 +312,7 @@
                 }
 
                 // We have to back up to pick up our first byte again.
-                var messageBytes = Array.from(byteArray.slice(index - 1, index + messageLength));
+                var messageBytes = Array.from(byteArray.subarray(index - 1, index + messageLength));
 
                 // Running status uses the previous event's status (type/channel) byte.
                 if (isRunningStatus) {
