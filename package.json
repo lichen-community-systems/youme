@@ -1,6 +1,6 @@
 {
     "name": "youme",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "MIDI tools and components for the Infusion ecosystem.",
     "contributors": [
         {
@@ -26,6 +26,7 @@
     ],
     "readmeFilename": "README.md",
     "dependencies": {
+        "bergson": "0.14.1",
         "infusion": "4.6.0",
         "normalize.css": "8.0.1"
     },
