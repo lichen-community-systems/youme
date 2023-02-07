@@ -81,10 +81,11 @@ parameters:
 
 ## Clock
 
-Used to synchronise performance across devices to the same "clock". According to the MIDI specification, 24 clock
-messages should be sent per quarter note. Please note that many devices that can receive clock messages only
-synchronise with them when configured to, typically using a menu option or button. In the JSON format used by YouMe,
-this message looks something like:
+Sent to synchronise performance across devices to the same "clock" (see "Quarter Frame MTC" below for another option).
+
+According to the MIDI specification, 24 clock  messages should be sent per quarter note. Please note that many devices
+that can receive clock messages only synchronise with them when configured to, typically using a menu option or button.
+In the JSON format used by YouMe, this message looks something like:
 
 ```json5
 {
@@ -224,6 +225,151 @@ messages require the following parameters:
 |-----------|----------------------------------------------|---------|---------|
 | `channel` | The MIDI channel this message should affect. | 0       | 15      |
 | `program` | The "program" to select.                     | 0       | 127     |
+
+## Quarter Frame MTC
+
+Sent to synchronise performance across devices to the same "clock" (see "Clock" above for another option).  [Quarter
+frame MTC messages](https://en.wikipedia.org/wiki/MIDI_timecode) are typically sent four times per frame, and split up
+into eight pieces.  The running timestamp is constructed by replacing each piece of the current timestamp as it is
+observed.
+
+Each piece has four bits reserved for the type of piece, and four bits of data.  These are often "nibbles" (half of an
+eight bit byte), but can also consist of a "sub-nibble" (less than the full four bits in a "nibble").
+
+The following table describes each piece number, and what its bits represent:
+
+| Piece | Description                                                 |
+|-------|-------------------------------------------------------------|
+| `0`   | Frame, Low "Nibble" (4 bits)                                |
+| `1`   | Frame, High "Nibble" (last 1 bit)                           |
+| `2`   | Seconds, Low "Nibble" (4 bits)                              |
+| `3`   | Seconds, High "Nibble" (last 2 bits)                        |
+| `4`   | Minutes, Low "Nibble"  (4 bits)                             |
+| `5`   | Minutes, High "Nibble" (last 2 bits)                        |
+| `6`   | Hour, Low "Nibble"  (4 bits)                                |
+| `7`   | Hour, High "Nibble" (first 1 bit), SMPTE rate (last 3 bits) |
+
+Let's say that the current time corresponds to the following JSON structure:
+
+```json5
+{
+    rate: 1,
+    hour: 0,
+    minute: 0,
+    second: 0,
+    frame: 0
+}
+```
+
+The `rate` value is a number from `0` to `3` that corresponds to one of the rates in the SMPTE standard:
+
+| Rate | Description                              |
+|------|------------------------------------------|
+| `0`  | 24 frames/second                         |
+| `1`  | 25 frames/second                         |
+| `2`  | 29.97 frames/second (SMPTD "drop frame") |
+| `3`  | 30 frames/second                         |
+
+For the sake of working in whole millisecond values, let's assume that we are currently at a relative time of 0ms,
+and that we are moving at 25 frames per second (or 40ms per frame). At 0ms, we would send the first MTC quarter frame
+message:
+
+```json5
+{
+    type: "quarterFrameMTC",
+    piece: 0,
+    frame: 0
+}
+```
+
+At 10ms, we would send the second piece:
+
+```json5
+{
+    type: "quarterFrameMTC",
+    piece: 1,
+    frame: 0
+}
+```
+
+At 20ms, we would send the third piece:
+
+```json5
+{
+    type: "quarterFrameMTC",
+    piece: 2,
+    second: 0
+}
+```
+
+At 30ms, we would send the fourth piece:
+
+```json5
+{
+    type: "quarterFrameMTC",
+    piece: 3,
+    second: 0
+}
+```
+
+At 40ms, we would send the fifth piece:
+
+```json5
+{
+    type: "quarterFrameMTC",
+    piece: 4,
+    minute: 0,
+}
+```
+
+At 50ms, we would send the sixth piece:
+
+```json5
+{
+    type: "quarterFrameMTC",
+    piece: 5,
+    minute: 0,
+}
+```
+
+At 60ms, we would send the seventh piece:
+
+```json5
+{
+    type: "quarterFrameMTC",
+    piece: 6,
+    hour: 0,
+}
+```
+
+At 70ms, we would send the eighth and final piece:
+
+```json5
+{
+    type: "quarterFrameMTC",
+    piece: 7,
+    rate: 1,
+    hour: 0,
+}
+```
+
+At 80ms, two full frames have elapsed at our current rate, so we would send piece `0` again with an updated frame value:
+
+```json5
+{
+    type: "quarterFrameMTC",
+    piece: 0,
+    frame: 0
+}
+```
+
+As long as we continue updating the values and sending each piece from `0` to `7` in turn, the "clock" continues to move
+forward.  Unlike "Clock" messages, SMPTE also supports the concept of running in reverse, i.e. decrementing the time and
+sending the quarter frames in reverse order, from `7` to `0` in turn.
+
+Note that you should be prepared to send quarter frame messages eight times per two frames.  If you update your frame
+values more frequently, you might end up sending mismatched "low" and "high" nibbles for frame, which would result in
+jitter.
 
 ## Reset
 
