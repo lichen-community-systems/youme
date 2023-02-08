@@ -9,10 +9,12 @@
     fluid.defaults("youme.demos.quarterFrame.send", {
         gradeNames: ["youme.templateRenderer", "youme.messageSender"],
         markup: {
-            container: "<div class='quarter-frame'><div class='timestamp'></div><div class='outputs'></div></div>"
+            container: "<div class='quarter-frame'><button class='start-button'>Start</button><div class='main-panel'><div class='timestamp'></div><div class='outputs'></div></div></div>"
         },
         selectors: {
+            mainPanel: ".main-panel",
             outputs: ".outputs",
+            startButton: ".start-button",
             timestamp: ".timestamp"
         },
         model: {
@@ -30,13 +32,18 @@
             handleQuarterFrame: {
                 funcName: "youme.demos.quarterFrame.send.handleQuarterFrame",
                 args: ["{that}"]
+            },
+            handleStartButtonClick: {
+                funcName: "youme.demos.quarterFrame.send.startScheduler",
+                args: ["{that}"]
             }
         },
 
         listeners: {
-            "onCreate.startScheduler": {
-                funcName: "youme.demos.quarterFrame.send.startScheduler",
-                args: ["{that}"]
+            "onCreate.bindStartButton": {
+                this: "{that}.dom.startButton",
+                method: "click",
+                args: ["{that}.handleStartButtonClick"]
             },
             "sendMessage.sendToOutputs": "{outputs}.events.sendMessage.fire"
         },
@@ -68,9 +75,9 @@
                 options: {
                     components: {
                         clock: {
-                            type: "berg.clock.raf",
+                            type: "berg.clock.autoAudioContext",
                             options: {
-                                freq: 60 // times per second
+                                freq: 120 // times per second
                             }
                         }
                     }
@@ -83,17 +90,21 @@
     youme.demos.quarterFrame.send.rates = [24, 25, 30, 30];
 
     youme.demos.quarterFrame.send.startScheduler = function (that) {
-        that.scheduler.schedule({
-            type: "repeat",
-            // These are both about the best I can get the RAF scheduler to do.
-            // A `freq` higher than 100 hangs the window.
-            freq: 100,
-            // An `interval` less than 0.01 hangs the window.
-            // interval: 0.01,
-            callback: that.handleQuarterFrame
-        });
+        var startButtonElement = that.locate("startButton");
+        startButtonElement.hide();
+
+        var mainPanelElement = that.locate("mainPanel");
+        mainPanelElement.show();
 
         that.scheduler.start();
+
+        // May need a setTimeout or other delay depending on whether this bug hits us:
+        // https://github.com/colinbdclark/bergson/blob/master/examples/audiocontext-clock/audio-context-clock-example.js
+        that.scheduler.schedule({
+            type: "repeat",
+            freq: 120,
+            callback: that.handleQuarterFrame
+        });
     };
 
     youme.demos.quarterFrame.send.handleQuarterFrame = function (that) {
@@ -117,14 +128,25 @@
         // Track the elapsed time internally rather than peeking at the current time.
         var fps = youme.demos.quarterFrame.send.rates[that.model.rate];
         var msPerPiece = (1000 / (fps * 4));
+
         var newTimestamp = that.model.timestamp + (that.model.direction * msPerPiece);
-        var newSecond = (60 + Math.round(newTimestamp  / 1000)) % 60;
-        var newMinute = (60 + Math.floor( newTimestamp / 60000)) % 60;
-        var newHour   = (24 + Math.floor(newTimestamp / 3600000)) % 24;
         transaction.fireChangeRequest({ path: "timestamp", value: newTimestamp});
-        transaction.fireChangeRequest({ path: "second", value: newSecond});
-        transaction.fireChangeRequest({ path: "minute", value: newMinute});
-        transaction.fireChangeRequest({ path: "hour", value: newHour});
+
+        var newSecond = (60 + Math.round(newTimestamp  / 1000)) % 60;
+        // Gate all the other updates conditionally to avoid a torrent of unnecessary evaluations downstream.
+        if (newSecond !== that.model.second) {
+            transaction.fireChangeRequest({ path: "second", value: newSecond});
+        }
+
+        var newMinute = (60 + Math.floor( newTimestamp / 60000)) % 60;
+        if (newMinute !== that.model.minute) {
+            transaction.fireChangeRequest({ path: "minute", value: newMinute});
+        }
+
+        var newHour   = (24 + Math.floor(newTimestamp / 3600000)) % 24;
+        if (newHour !== that.model.hour) {
+            transaction.fireChangeRequest({ path: "hour", value: newHour});
+        }
 
         // Update the frame in whichever direction we're going.
         if ((that.model.direction === 1 && that.model.piece === 7) || (that.model.direction === -1 && that.model.piece === 0)) {
