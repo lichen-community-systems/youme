@@ -51,7 +51,7 @@
         components: {
             // TODO: Something to control direction.
             timestamp: {
-                type: "youme.demos.quarterFrame.timestamp",
+                type: "youme.demos.timestamp",
                 container: "{that}.dom.timestamp",
                 options: {
                     model: {
@@ -65,10 +65,7 @@
             },
             outputs: {
                 type: "youme.multiPortSelectorView.outputs",
-                container: "{that}.dom.outputs",
-                options: {
-                    desiredPortSpecs: ["Arturia BeatStep"]
-                }
+                container: "{that}.dom.outputs"
             },
             scheduler: {
                 type: "berg.scheduler",

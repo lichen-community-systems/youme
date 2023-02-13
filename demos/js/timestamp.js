@@ -8,7 +8,7 @@
 
     var youme = fluid.registerNamespace("youme");
 
-    fluid.defaults("youme.demos.quarterFrame.timestamp", {
+    fluid.defaults("youme.demos.timestamp", {
         gradeNames: ["youme.templateRenderer"],
         model: {
             hour: 0,
@@ -29,35 +29,35 @@
             hour: {
                 singleTransform: {
                     input: "{that}.model.hour",
-                    type: "youme.demos.quarterFrame.timestamp.padStart"
+                    type: "youme.demos.timestamp.padStart"
                 },
                 target: "{that}.model.dom.hour.text"
             },
             minute: {
                 singleTransform: {
                     input: "{that}.model.minute",
-                    type: "youme.demos.quarterFrame.timestamp.padStart"
+                    type: "youme.demos.timestamp.padStart"
                 },
                 target: "{that}.model.dom.minute.text"
             },
             second: {
                 singleTransform: {
                     input: "{that}.model.second",
-                    type: "youme.demos.quarterFrame.timestamp.padStart"
+                    type: "youme.demos.timestamp.padStart"
                 },
                 target: "{that}.model.dom.second.text"
             },
             frame: {
                 singleTransform: {
                     input: "{that}.model.frame",
-                    type: "youme.demos.quarterFrame.timestamp.padStart"
+                    type: "youme.demos.timestamp.padStart"
                 },
                 target: "{that}.model.dom.frame.text"
             }
         }
     });
 
-    youme.demos.quarterFrame.timestamp.padStart = function (number) {
+    youme.demos.timestamp.padStart = function (number) {
         return (number).toString().padStart(2, "0");
     };
 })(fluid);

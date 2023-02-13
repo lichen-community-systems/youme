@@ -5,7 +5,7 @@
   -->
 <html>
     <head>
-        <title>"Standard" MIDI file demo.</title>
+        <title>"Standard" MIDI File Viewer</title>
 
         <script src="../node_modules/infusion/dist/infusion-all.js"></script>
 
@@ -13,18 +13,20 @@
         <script src="../src/js/smf.js"></script>
         <script src="../src/js/ui/templateRenderer.js"></script>
 
-        <script src="./js/smf.js"></script>
+        <script src="js/smfViewer.js"></script>
 
         <link type="text/css" rel="stylesheet" href="../src/css/youme.css"/>
-        <link type="text/css" rel="stylesheet" href="./css/smf.css"/>
+        <link type="text/css" rel="stylesheet" href="css/smfViewer.css"/>
     </head>
     <body>
-        <h2>"Standard" MIDI file demo.</h2>
+        <h2>"Standard" MIDI File Viewer</h2>
 
-        <div class="smf"></div>
+        <p>Upload a MIDI file to view its contents as a JSON structure.</p>
+
+        <div class="smf-viewer"></div>
 
         <script type="application/javascript">
-            var smf = youme.demos.smf(".smf");
+            var smfViewer = youme.demos.smf.viewer(".smf-viewer");
         </script>
     </body>
 </html>

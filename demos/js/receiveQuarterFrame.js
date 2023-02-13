@@ -25,7 +25,7 @@
 
         components: {
             timestamp: {
-                type: "youme.demos.quarterFrame.timestamp",
+                type: "youme.demos.timestamp",
                 container: "{that}.dom.timestamp",
                 options: {
                     model: {

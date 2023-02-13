@@ -7,7 +7,7 @@
     "use strict";
     var youme = fluid.registerNamespace("youme");
 
-    fluid.defaults("youme.demos.smf", {
+    fluid.defaults("youme.demos.smf.viewer", {
         gradeNames: ["youme.templateRenderer"],
 
         markup: {
@@ -38,14 +38,14 @@
 
         modelListeners: {
             errorString: {
-                funcName: "youme.demos.smf.displayErrorString",
+                funcName: "youme.demos.smf.viewer.displayErrorString",
                 args: ["{that}"]
             }
         },
 
         invokers: {
             handleInputChange: {
-                funcName: "youme.demos.smf.handleInputChange",
+                funcName: "youme.demos.smf.viewer.handleInputChange",
                 args: ["{that}", "{that}.dom.input"] // HTMLInputElement
             }
         },
@@ -59,14 +59,14 @@
         }
     });
 
-    youme.demos.smf.displayErrorString = function (that) {
+    youme.demos.smf.viewer.displayErrorString = function (that) {
         var errorElement = that.locate("error");
         if (errorElement) {
             errorElement.html(that.model.errorString);
         }
     };
 
-    youme.demos.smf.handleInputChange = function (that, htmlInputElement) {
+    youme.demos.smf.viewer.handleInputChange = function (that, htmlInputElement) {
         that.applier.change("errorString", false);
         var file = fluid.get(htmlInputElement, "0.files.0");
         if (file === undefined) {

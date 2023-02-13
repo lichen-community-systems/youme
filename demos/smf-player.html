@@ -7,11 +7,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>MTC Quarter Frame "Receive" Demo.</title>
+    <title>"Standard" MIDI File Player Demo</title>
 
     <script src="../node_modules/infusion/dist/infusion-all.js"></script>
 
     <script src="../src/js/core.js"></script>
+    <script src="../src/js/smf.js"></script>
     <script src="../src/js/system.js"></script>
     <script src="../src/js/messageEventHolders.js"></script>
     <script src="../src/js/connection.js"></script>
@@ -28,20 +29,21 @@
     <script src="../node_modules/bergson/dist/bergson-only.js"></script>
 
     <script src="js/timestamp.js"></script>
-    <script src="js/receiveQuarterFrame.js"></script>
+    <script src="js/smfPlayer.js"></script>
 
     <link type="text/css" rel="stylesheet" href="../src/css/youme.css"/>
     <link type="text/css" rel="stylesheet" href="css/timestamp.css"/>
+    <link type="text/css" rel="stylesheet" href="./css/smfPlayer.css"/>
 </head>
 <body>
-<h3>MTC Quarter Frame "Receive" Demo</h3>
+<h3>"Standard" MIDI File Player Demo</h3>
 
-<p>Display a local clock that can be updated by an external MIDI input using MTC Quarter Frame Messages.</p>
+<p>Upload a MIDI file and send its messages to an external MIDI output.</p>
 
-<div class="receive-quarter-frame"></div>
+<div class="smf-player"></div>
 
 <script>
-    var receiveQuarterFrame = youme.demos.quarterFrame.receive(".receive-quarter-frame");
+    var smfPlayer = youme.demos.smf.player(".smf-player");
 </script>
 </body>
 </html>
