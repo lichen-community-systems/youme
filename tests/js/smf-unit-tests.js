@@ -20,11 +20,11 @@
     // All sample values and expected output taken from: https://www.mobilefish.com/tutorials/midi/midi_quickguide_specification.html
     youme.test.smf.divisionExamples = [
         // FPS
-        { rawDivision: 0xE878, divisionObject: { type: "framesPerSecond", fps: 24, unitsPerFrame: 120}},
-        { rawDivision: 0xE764, divisionObject: { type: "framesPerSecond", fps: 25, unitsPerFrame: 100}},
-        // The examples mistakenly said this should be 50 unitsPerFrame, but the bits clearly indicate 80.
-        { rawDivision: 0xE350, divisionObject: { type: "framesPerSecond", fps: 29, unitsPerFrame: 80}},
-        { rawDivision: 0xE250, divisionObject: { type: "framesPerSecond", fps: 30, unitsPerFrame: 80}},
+        { rawDivision: 0xE878, divisionObject: { type: "framesPerSecond", fps: 24, ticksPerFrame: 120}},
+        { rawDivision: 0xE764, divisionObject: { type: "framesPerSecond", fps: 25, ticksPerFrame: 100}},
+        // The examples mistakenly said this should be 50 ticksPerFrame, but the bits clearly indicate 80.
+        { rawDivision: 0xE350, divisionObject: { type: "framesPerSecond", fps: 29, ticksPerFrame: 80}},
+        { rawDivision: 0xE250, divisionObject: { type: "framesPerSecond", fps: 30, ticksPerFrame: 80}},
         // Ticks per quarter note.
         { rawDivision: 0x0080, divisionObject: { type: "ticksPerQuarterNote", resolution: 128}},
         { rawDivision: 0x0050, divisionObject: { type: "ticksPerQuarterNote", resolution: 80}}

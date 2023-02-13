@@ -190,7 +190,7 @@
             events: []
         };
 
-        var timeElapsed = 0;
+        var ticksElapsed = 0;
         var previousMessageBytes = [];
 
         // We use our own internal "stylus" to avoid manipulating the value we were passed.
@@ -206,18 +206,18 @@
 
             var eventObject = {};
 
-            // All messages start with a "delta time"
-            var deltaTimePayload = youme.smf.extractVariableLengthValue(byteArray, index);
-            timeElapsed += deltaTimePayload.value;
+            // All messages start with a "delta", which is the number of "ticks" since the preceding message.
+            var tickDeltaPayload = youme.smf.extractVariableLengthValue(byteArray, index);
+            ticksElapsed += tickDeltaPayload.value;
 
-            // To avoid breaking use cases supported by individual "delta time" values, we preserve this information.
-            eventObject.deltaTime = deltaTimePayload.value;
+            // To avoid breaking use cases supported by individual "delta" values, we preserve this information.
+            eventObject.tickDelta = tickDeltaPayload.value;
 
             // We also store the time elapsed since the start of the track, to make it easier to schedule everything
             // at once relative to the start of the track.
-            eventObject.timeElapsed = timeElapsed;
+            eventObject.ticksElapsed = ticksElapsed;
 
-            index += deltaTimePayload.numBytes;
+            index += tickDeltaPayload.numBytes;
 
             var eventFirstByte = byteArray[index];
             index++;
@@ -377,7 +377,10 @@
             var thisByte = byteArray[index];
             var thisValue = thisByte & 127;
 
-            combinedValue = combinedValue << 7;
+            if (index > startingPosition) {
+                combinedValue = combinedValue << 7;
+            }
+
             combinedValue += thisValue;
 
             index++;
@@ -467,17 +470,18 @@
             // FF 51 03 tttttt Set Tempo (in microseconds per MIDI quarter-note)
             case 0x51:
                 metaEventObject.type = "tempo";
-                // TODO: This seems nonsensical with our existing examples. Investigate.
                 metaEventObject.value = youme.smf.combineBytes(metaEventBytes);
                 break;
 
             // FF 54 05 hr mn se fr ff SMPTE Offset
             case 0x54:
                 metaEventObject.type = "smpteOffset";
-                metaEventObject.hour = metaEventBytes[0];
-                metaEventObject.minute = metaEventBytes[1];
-                metaEventObject.second = metaEventBytes[2];
-                metaEventObject.frame = metaEventBytes[3];
+                // The first byte is 7-bit with two values, rate, and actual hour, i.e. 0rrhhhhh.
+                metaEventObject.rate = (metaEventBytes[0] & 127) >>> 5;
+                metaEventObject.hour = metaEventBytes[0] & 31;
+                metaEventObject.minute = metaEventBytes[1] & 63;
+                metaEventObject.second = metaEventBytes[2] & 63;
+                metaEventObject.frame = metaEventBytes[3] & 31;
                 metaEventObject.fractionalFrame = metaEventBytes[4];
                 break;
 

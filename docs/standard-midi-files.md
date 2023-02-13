@@ -40,7 +40,7 @@ The following is a representation of a single-track MIDI file that plays a singl
         errors: [],
         events: [
             {
-                timeElapsed: 96,
+                ticksElapsed: 96,
                 messsage: {
                     type: "noteOn",
                     channel: 0,
@@ -49,7 +49,7 @@ The following is a representation of a single-track MIDI file that plays a singl
                 }
             },
             {
-                timeElapsed: 96,
+                ticksElapsed: 96,
                 messsage: {
                     type: "noteOff",
                     channel: 0,
@@ -58,7 +58,7 @@ The following is a representation of a single-track MIDI file that plays a singl
                 }
             },
             {
-                timeElapsed: 0,
+                ticksElapsed: 0,
                 metaEvent: {
                     type: "endOfTrack"
                 }
@@ -80,10 +80,10 @@ SMF "meta" events are stored as a `metaEvent` element within an event object.
 
 #### Measuring Time in MIDI Files
 
-Each MIDI event has two associated time values.  The standard itself stores only a `deltaTime` value.  This "delta time"
-represents the time elapsed between the previous event in the track and the current event.
+Each MIDI event has two associated time values.  The standard itself stores only a `tickDelta` value.  This "delta"
+represents the ticks that should occur between the previous event in the track and the current event.
 
-Our JSON structure also stores a `timeElapsed` value, which represents the total time elapsed since the start of the
+Our JSON structure also stores a `ticksElapsed` value, which represents the total time elapsed since the start of the
 track.  This information is intended to be helpful when searching and filtering for particular types of events, as you
 do not need to track the events you don't care about to calculate when the event should occur.
 
@@ -92,11 +92,10 @@ including "Set Tempo" and "SMPTE Offset" events (see [the SMF meta event docs](s
 the process as follows:
 
 1. Read the time signature.
-2. Calculate the amount of clock time represented by each unit of "delta" and "elapsed" time.
+2. Calculate the initial amount of clock time represented by each tick.
 3. The starting time is now unless there is a "SMPTE Offset" at the start of the track to indicate an initial delay.
-4. Move through events, incrementing the number of ticks based on their "delta time".
-5. If "Set Tempo" events are encountered, adjust the amount of clock time to allocate for each unit of "delta" and
-   "elapsed" time.
+4. Move through events tick by tick, incrementing the number of ticks based on their "delta".
+5. If "Set Tempo" events are encountered, adjust the amount of clock time to allocate for each "tick".
 
 The initial "time per tick" as found in the header can either be expressed in terms of ticks per quarter note, or
 frames per second (SMPTE).  Here is an example time signature that uses ticks per quarter note:
