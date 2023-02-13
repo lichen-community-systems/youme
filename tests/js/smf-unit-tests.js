@@ -96,8 +96,8 @@
         },
         // FF 54 05 hr mn se fr ff SMPTE Offset
         "SMPTE offset": {
-            bytes: [0x54, 0x05, 0x0B, 0x13, 0x19, 0x05, 0x32],
-            object: { type: "smpteOffset", hour: 11, minute: 19, second: 25, frame: 5, fractionalFrame: 50 }
+            bytes: [0x54, 0x05, 0x6B, 0x13, 0x19, 0x05, 0x32],
+            object: { type: "smpteOffset", rate: 3, hour: 11, minute: 19, second: 25, frame: 5, fractionalFrame: 50 }
         },
         // FF 58 04 nn dd cc bb Time Signature
         "time signature": {

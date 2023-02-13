@@ -159,13 +159,14 @@
             // https://www.mobilefish.com/tutorials/midi/midi_quickguide_specification.html
             divisionObject.fps = (((~rawDivision) >>> 8) & 127) + 1;
 
-            divisionObject.unitsPerFrame = rawDivision & 127;
+            // Bits 7 through 0 represent the ticks per frame.
+            divisionObject.ticksPerFrame = rawDivision & 127;
         }
         // Ticks Per Quarter Note
         else {
             divisionObject.type = "ticksPerQuarterNote";
             // Bits 14 through 0 represent the number of ticks for each quarter note.
-            divisionObject.resolution = rawDivision & 16383;
+            divisionObject.resolution = rawDivision & 8191;
         }
 
         return divisionObject;

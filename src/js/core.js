@@ -382,7 +382,7 @@
                 break;
             // Rate and hour most significant bits.
             case 7:
-                quarterFrameObject.rate = (dataBits & 6) >> 1;
+                quarterFrameObject.rate = (dataBits & 6) >>> 1;
                 quarterFrameObject.hour = (dataBits & 1) << 4;
                 break;
             default:
