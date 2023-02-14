@@ -11,15 +11,18 @@
     fluid.defaults("youme.demos.smf.player", {
         gradeNames: ["youme.templateRenderer", "youme.messageSender"],
         markup: {
-            container: "<div class='smf-player'><button class='start-button'>Start</button><div class='main-panel'><input type='file' class='smf-player-file-input'/><div class='playback-controls'></div><div class='timestamp'></div><div class='outputs'></div></div></div>"
+            container: "<div class='smf-player'><input type='file' class='smf-player-file-input'/><div class='playback-controls'></div><div class='timestamp'></div><div><h3>Ticks Elapsed</h3><p class='ticks-elapsed'>0</p></div><div class='outputs'></div></div>"
         },
         selectors: {
             controls: ".playback-controls",
             fileInput: ".smf-player-file-input",
-            mainPanel: ".main-panel",
             outputs: ".outputs",
-            startButton: ".start-button",
+            ticksElapsed: ".ticks-elapsed",
             timestamp: ".timestamp"
+        },
+
+        events: {
+            createScheduler: null
         },
 
         members: {
@@ -42,14 +45,13 @@
 
             fps: 30,
 
+            // TODO: Hide this once we figure out the odd timing issues with various files.
+            ticksElapsed: 0,
+
             isRunning: false
         },
 
         invokers: {
-            handleStartButtonClick: {
-                funcName: "youme.demos.smf.player.startScheduler",
-                args: ["{that}"]
-            },
             handleFileInputChange: {
                 funcName: "youme.demos.smf.player.handleFileInputChange",
                 args: ["{that}", "{that}.dom.fileInput"] // HTMLInputElement
@@ -57,11 +59,6 @@
         },
 
         listeners: {
-            "onCreate.bindStartButton": {
-                this: "{that}.dom.startButton",
-                method: "click",
-                args: ["{that}.handleStartButtonClick"]
-            },
             "onCreate.bindFileInputChange": {
                 this: "{that}.dom.fileInput",
                 method: "change",
@@ -76,6 +73,13 @@
                 excludeSource: "init",
                 funcName: "youme.demos.smf.player.handleRunningStateChange",
                 args: ["{that}"]
+            }
+        },
+
+        modelRelay: {
+            ticksElapsed: {
+                source: "ticksElapsed",
+                target: "{that}.model.dom.ticksElapsed.text"
             }
         },
 
@@ -99,14 +103,15 @@
             },
             scheduler: {
                 type: "berg.scheduler",
+                createOnEvent: "{that}.events.createScheduler",
                 options: {
                     components: {
                         clock: {
-                            type: "berg.clock.raf",
-                            // type: "berg.clock.autoAudioContext",
+                            // type: "berg.clock.raf",
+                            type: "berg.clock.autoAudioContext",
                             options: {
-                                // freq: 120 // times per second
-                                freq: 60
+                                freq: 120 // times per second
+                                // freq: 60
                             }
                         }
                     }
@@ -143,8 +148,8 @@
                     },
                     invokers: {
                         handleStartButtonClick: {
-                            func: "{that}.applier.change",
-                            args: ["isRunning", true]
+                            funcName: "youme.demos.smf.player.handleStartButtonClick",
+                            args: ["{youme.demos.smf.player}"]
                         },
                         handleStopButtonClick: {
                             func: "{that}.applier.change",
@@ -168,22 +173,43 @@
         }
     });
 
-    youme.demos.smf.player.startScheduler = function (that) {
-        var startButtonElement = that.locate("startButton");
-        startButtonElement.hide();
+    youme.demos.smf.player.handleStartButtonClick = function (that) {
+        if (that.scheduler) {
+            that.applier.change("isRunning", false);
 
-        var mainPanelElement = that.locate("mainPanel");
-        mainPanelElement.show();
+            // TODO: We can't stop a single scheduler, but we also don't seem to be able to recreate one without
+            // hitting a Fluid error.
+            try {
+                // TODO: Ask Colin about the error here.
+                // bergson-only.js:1376 Uncaught DOMException: Failed to execute 'disconnect' on 'AudioNode': the given destination is not connected.
+                //     at berg.clock.autoAudioContext.stop (file:///Users/duhrer/Source/projects/youme/node_modules/bergson/dist/bergson-only.js:1376:20)
+                //     at togo (file:///Users/duhrer/Source/projects/youme/node_modules/infusion/dist/infusion-all.js:148:99135)
+                //     at fire (file:///Users/duhrer/Source/projects/youme/node_modules/infusion/dist/infusion-all.js:139:25883)
+                //     at invokeInvoker (file:///Users/duhrer/Source/projects/youme/node_modules/infusion/dist/infusion-all.js:148:97450)
+                //     at togo (file:///Users/duhrer/Source/projects/youme/node_modules/infusion/dist/infusion-all.js:148:99135)
+                //     at fire (file:///Users/duhrer/Source/projects/youme/node_modules/infusion/dist/infusion-all.js:139:25883)
+                //     at fluid.componentConstructor.invokeInvoker [as stop] (file:///Users/duhrer/Source/projects/youme/node_modules/infusion/dist/infusion-all.js:148:97450)
+                //     at <anonymous>:1:21
+                that.scheduler.stop();
+            }
+            catch (e) {
+                fluid.log(fluid.logLevel.WARN, "Error stopping scheduler.");
+            }
+            that.scheduler.clearAll();
+        }
+        else {
+            // Create the scheduler now while we are clothed in divine user intent.
+            that.events.createScheduler.fire();
+        }
 
-        // We start and stop so that the first start can be associated with the user click.
-        that.scheduler.start();
-        that.scheduler.stop();
+        that.applier.change("isRunning", true);
     };
 
     youme.demos.smf.player.handleRunningStateChange = function (that) {
         if (that.model.isRunning) {
             if (that.smfEvents.length) {
-                that.scheduler.clearAll();
+                // This should no longer be necessary, as we have recreated the scheduler.
+                // that.scheduler.clearAll();
 
                 that.currentSeconds = 0;
 
@@ -223,9 +249,12 @@
 
                 // Arbitrary default to line up "ticks per quarter note" with the timestamp.
                 var fps = 30;
+
                 var secondsPerQuarterNote = .5;
+
                 // The default beat time, 0.5 seconds, divided by the default ticks/beat, 60.
-                var secondsPerTick = 0.008333333333333;
+                // var secondsPerTick = 0.008333333333333;
+                var secondsPerTick = that.model.secondsPerTick;
 
                 if (that.model.midiObject.header.division.type === "ticksPerQuarterNote") {
                     secondsPerTick = secondsPerQuarterNote / ticksPerQuarterNote;
@@ -245,6 +274,9 @@
                     }
 
                     // Process meta events last, as tempo changes are forward-facing, i.e. from this point on.
+                    // Empirical secondsPerTick for "hushd": 0.002
+                    // Empirical secondsPerTick for "my master": 0.0006
+                    // Empirical secondsPerTick for "who are you": 0.00075
                     if (singleEvent.metaEvent) {
                         if (singleEvent.metaEvent.type === "tempo") {
                             // TODO: Confirm that this is appropriate for `framesPerSecond` time division (if we can
@@ -264,6 +296,7 @@
                             type: "once",
                             time: startTime,
                             callback: function () {
+                                that.applier.change("ticksElapsed", singleEvent.ticksElapsed);
                                 that.events.sendMessage.fire(singleChannelMessage);
                             }
                         });
@@ -294,7 +327,13 @@
             transaction.fireChangeRequest({ path: "frame", value: 0});
             transaction.commit();
 
-            that.scheduler.stop();
+            try {
+                that.scheduler.stop();
+            }
+            catch (e) {
+                // TODO: Ask Colin about the error here.
+                fluid.log(fluid.logLevel.WARN, "Error stopping scheduler.");
+            }
         }
     };
 
@@ -336,10 +375,10 @@
                 // time values that reflect any tempo changes we encounter.
                 that.smfEvents = [];
 
-                fluid.each(midiObject.tracks, function (singleTrack) {
+                fluid.each(midiObject.tracks, function (singleTrack, trackIndex) {
                     fluid.each(singleTrack.events, function (event) {
                         if (event.message || (event.metaEvent && event.metaEvent.type !== "endOfTrack")) {
-                            that.smfEvents.push(event);
+                            that.smfEvents.push(fluid.extend({}, event, { track: trackIndex }));
                         }
                     });
                 });
