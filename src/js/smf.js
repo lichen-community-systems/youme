@@ -462,6 +462,16 @@
                 metaEventObject.value = metaEventBytes[0];
                 break;
 
+            // This does not appear to be part of the core standard, and I haven't found an extension or update to the
+            // standard, but it is used in "the wild", so it's included in our support for meta-events.  For an
+            // explanation, see: https://www.mixagesoftware.com/en/midikit/help/HTML/meta_events.html
+            //
+            // FF 21 01 pp MIDI port
+            case 0x21:
+                metaEventObject.type = "port";
+                metaEventObject.value = metaEventBytes[0];
+                break;
+
             // FF 2F 00 End of Track
             case 0x2F:
                 metaEventObject.type = "endOfTrack";

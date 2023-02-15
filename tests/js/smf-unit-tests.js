@@ -84,6 +84,11 @@
             bytes: [0x20, 0x01, 0x09],
             object: { type: "channelPrefix", value: 9 }
         },
+        // FF 21 01 cc MIDI Port
+        "MIDI port": {
+            bytes: [0x21, 0x01, 0x09],
+            object: { type: "port", value: 9 }
+        },
         // FF 2F 00 End of Track
         "end of track": {
             bytes: [0x2F, 0x00],

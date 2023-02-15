@@ -106,6 +106,18 @@ used in individual voice messages for devices that support this.
 }
 ```
 
+## MIDI port
+
+Although this does not appear to be part of the standard, various SMF editing tools include a "MIDI port", presumably
+as a means of addressing more than 16 "channels" by specifying a port in addition to a channel.
+
+```json5
+{
+    type: "port",
+    value: 9
+}
+```
+
 ## End of Track
 
 Indicates that the track is complete.  Required at the end of each track.
