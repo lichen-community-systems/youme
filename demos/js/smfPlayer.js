@@ -26,8 +26,7 @@
         },
 
         members: {
-            currentSeconds: 0,
-            smfEvents: []
+            currentSeconds: 0
         },
 
         model: {
@@ -207,12 +206,97 @@
 
     youme.demos.smf.player.handleRunningStateChange = function (that) {
         if (that.model.isRunning) {
-            if (that.smfEvents.length) {
+            if (fluid.get(that, "model.midiObject.tracks.length")) {
                 // This should no longer be necessary, as we have recreated the scheduler.
                 // that.scheduler.clearAll();
 
-                that.currentSeconds = 0;
+                // There are three file types we need to support:
+                //
+                //   0: single track with meta events generally at timestamp 0.
+                //   1: multiple parallel tracks, meta events (including timing) in the first track.
+                //   2: multiple parallel tracks with independent timing per track.
 
+                // When working with type 1 files, we need to hold onto meta events such as tempo for all tracks.
+                var commonMetaEvents = [];
+
+                // We want to stop after the last tick required for any track.
+                var maxTrackTime = 0;
+                fluid.each(that.model.midiObject.tracks, function (singleTrack, trackNumber) {
+                    if (that.model.midiObject.header.format === 1 && trackNumber === 0) {
+                        // TODO: Pull out the FPS and initial tempo for timekeeping purposes.
+                        commonMetaEvents = singleTrack.events;
+                    }
+                    else {
+                        var eventsToProcess = commonMetaEvents.concat(singleTrack.events);
+                        eventsToProcess.sort(youme.demos.smf.player.sortByTicksElapsed);
+
+                        // Start with what's in the header and update as we go.
+                        var ticksPerQuarterNote = that.model.midiObject.header.division.resolution;
+
+                        // Arbitrary default to line up "ticks per quarter note" with the timestamp.
+                        var fps = 30;
+
+                        var secondsPerQuarterNote = .5;
+
+                        // The default beat time, 0.5 seconds, divided by the default ticks/beat, 60.
+                        // var secondsPerTick = 0.008333333333333;
+                        var secondsPerTick = that.model.secondsPerTick;
+
+                        if (that.model.midiObject.header.division.type === "ticksPerQuarterNote") {
+                            secondsPerTick = secondsPerQuarterNote / ticksPerQuarterNote;
+                        }
+                        // { type: "framesPerSecond", fps: 30, ticksPerFrame: 80}},
+                        else if (that.model.midiObject.header.division.type === "framesPerSecond") {
+                            fps = that.model.midiObject.header.division.fps;
+                            secondsPerTick = 1 / fps / that.model.midiObject.header.division.ticksPerFrame;
+                        }
+
+                        var startTime = 0;
+
+                        fluid.each(eventsToProcess, function (singleEvent) {
+                            // Process meta events first, as tempo changes are forward-facing, i.e. from this point on.
+                            // Empirical secondsPerTick for "hushd": 0.002
+                            // Empirical secondsPerTick for "my master": 0.0006
+                            // Empirical secondsPerTick for "who are you": 0.00075
+                            if (singleEvent.metaEvent) {
+                                if (singleEvent.metaEvent.type === "tempo") {
+                                    // TODO: Confirm that this is appropriate for `framesPerSecond` time division (if we can
+                                    //       ever find an example file in the wild).
+
+                                    // Another way of putting "microseconds per quarter-note" is "24ths of a microsecond per MIDI clock"
+                                    secondsPerQuarterNote = singleEvent.metaEvent.value / 1000000;
+                                    secondsPerTick = secondsPerQuarterNote / ticksPerQuarterNote;
+                                }
+
+                                // TODO: Add support for displaying text and lyrics?
+                            }
+
+                            // Time should always move forward for messages, but should only move forward for
+                            // meta-events if we are working with format 0 or 2.
+                            if (singleEvent.tickDelta && (singleEvent.message || that.model.midiObject.header.format !== 1)) {
+                                // Calculate the time delta from the "tick delta".
+                                startTime += singleEvent.tickDelta * secondsPerTick;
+                                maxTrackTime = Math.max(startTime, maxTrackTime);
+                            }
+
+                            if (singleEvent.message) {
+                                // TODO: Figure out a saner way to optionally force all notes to one channel.
+                                var singleChannelMessage = fluid.extend({}, singleEvent.message, { channel: 0});
+                                that.scheduler.schedule({
+                                    type: "once",
+                                    time: startTime,
+                                    callback: function () {
+                                        that.applier.change("ticksElapsed", singleEvent.ticksElapsed);
+                                        that.events.sendMessage.fire(singleChannelMessage);
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+
+                // Run the onscreen clock independently.
+                that.currentSeconds = 0;
                 var secondsPerFrame = (1 / that.model.fps);
                 that.scheduler.schedule({
                     type: "repeat",
@@ -244,69 +328,10 @@
                     }
                 });
 
-                // Start with what's in the header and update as we go.
-                var ticksPerQuarterNote = that.model.midiObject.header.division.resolution;
-
-                // Arbitrary default to line up "ticks per quarter note" with the timestamp.
-                var fps = 30;
-
-                var secondsPerQuarterNote = .5;
-
-                // The default beat time, 0.5 seconds, divided by the default ticks/beat, 60.
-                // var secondsPerTick = 0.008333333333333;
-                var secondsPerTick = that.model.secondsPerTick;
-
-                if (that.model.midiObject.header.division.type === "ticksPerQuarterNote") {
-                    secondsPerTick = secondsPerQuarterNote / ticksPerQuarterNote;
-                }
-                // { type: "framesPerSecond", fps: 30, ticksPerFrame: 80}},
-                else if (that.model.midiObject.header.division.type === "framesPerSecond") {
-                    fps = that.model.midiObject.header.division.fps;
-                    secondsPerTick = 1 / fps / that.model.midiObject.header.division.ticksPerFrame;
-                }
-
-                var startTime = 0;
-
-                fluid.each(that.smfEvents, function (singleEvent) {
-                    if (singleEvent.tickDelta) {
-                        // Calculate the time delta from the "tick delta".
-                        startTime += singleEvent.tickDelta * secondsPerTick;
-                    }
-
-                    // Process meta events last, as tempo changes are forward-facing, i.e. from this point on.
-                    // Empirical secondsPerTick for "hushd": 0.002
-                    // Empirical secondsPerTick for "my master": 0.0006
-                    // Empirical secondsPerTick for "who are you": 0.00075
-                    if (singleEvent.metaEvent) {
-                        if (singleEvent.metaEvent.type === "tempo") {
-                            // TODO: Confirm that this is appropriate for `framesPerSecond` time division (if we can
-                            //       ever find an example file in the wild).
-                            // Another way of putting "microseconds per quarter-note" is "24ths of a microsecond per MIDI clock"
-                            secondsPerQuarterNote = singleEvent.metaEvent.value / 1000000;
-                            secondsPerTick = secondsPerQuarterNote / ticksPerQuarterNote;
-                        }
-
-                        // TODO: Add support for displaying text and lyrics?
-                    }
-
-                    if (singleEvent.message) {
-                        // TODO: Figure out a saner way to optionally force all notes to one channel.
-                        var singleChannelMessage = fluid.extend({}, singleEvent.message, { channel: 0});
-                        that.scheduler.schedule({
-                            type: "once",
-                            time: startTime,
-                            callback: function () {
-                                that.applier.change("ticksElapsed", singleEvent.ticksElapsed);
-                                that.events.sendMessage.fire(singleChannelMessage);
-                            }
-                        });
-                    }
-                });
-
-                // Stop playing at the end of the song.
+                // Stop playing at the end of the longest track.
                 that.scheduler.schedule({
                     type: "once",
-                    time: startTime,
+                    time: maxTrackTime,
                     callback: function () {
                         that.applier.change("isRunning", false);
                     }
@@ -369,22 +394,6 @@
                 transaction.fireChangeRequest({ path: "midiObject", type: "DELETE"});
                 transaction.fireChangeRequest({ path: "midiObject", value: midiObject});
                 transaction.commit();
-
-                // The amount of "ticks" stays constant, but the time per tick changes as we encounter tempo meta
-                // events. So we track messages and meta events by tick, and iterate through them, converting to
-                // time values that reflect any tempo changes we encounter.
-                that.smfEvents = [];
-
-                fluid.each(midiObject.tracks, function (singleTrack, trackIndex) {
-                    fluid.each(singleTrack.events, function (event) {
-                        if (event.message || (event.metaEvent && event.metaEvent.type !== "endOfTrack")) {
-                            that.smfEvents.push(fluid.extend({}, event, { track: trackIndex }));
-                        }
-                    });
-                });
-
-                // Sort by "ticks elapsed", so that all events across tracks are in order, earliest to latest.
-                that.smfEvents.sort(youme.demos.smf.player.sortByTicksElapsed);
             });
         }
     };
