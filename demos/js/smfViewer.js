@@ -11,7 +11,7 @@
         gradeNames: ["youme.templateRenderer"],
 
         markup: {
-            container: "<div><input type='file' class='smf-demo-file-input'/>\n<hr/>\n<div class='smf-demo-error'></div><pre class='smf-demo-output'>%output</pre></div>"
+            container: "<div><input type='file' class='smf-demo-file-input'/>\n<h3>Metadata</h3>\n</h3><div class='smf-metadata'><p></p></div>\n<div class='smf-demo-error'></div><h3>JSON</h3>\n</h3><pre class='smf-demo-output'>%output</pre></div>"
         },
 
         model: {
@@ -22,7 +22,8 @@
         selectors: {
             error: ".smf-demo-error",
             input: ".smf-demo-file-input",
-            output: ".smf-demo-output"
+            output: ".smf-demo-output",
+            smfMetadata: ".smf-metadata"
         },
 
         modelRelay: {
@@ -56,6 +57,18 @@
                 method: "change",
                 args: "{that}.handleInputChange"
             }
+        },
+
+        components: {
+            metadata: {
+                type: "youme.demos.smf.metadata",
+                container: "{that}.dom.smfMetadata",
+                options: {
+                    model: {
+                        midiObject: "{youme.demos.smf.viewer}.model.midiObject"
+                    }
+                }
+            }
         }
     });
 
@@ -78,12 +91,21 @@
             promise.then(function (arrayBuffer) {
                 var intArray = new Uint8Array(arrayBuffer);
                 var midiObject = youme.smf.parseSMFByteArray(intArray);
+
+                var transaction = that.applier.initiate();
+                transaction.fireChangeRequest({ path: "midiObject", type: "DELETE"});
+                transaction.fireChangeRequest({ path: "midiObject", value: midiObject});
+
                 if (midiObject.errors.length) {
                     var errorString = "<p>" + midiObject.errors.join("</p></p>") + "</p>";
-                    that.applier.change("errorString", errorString);
-                    that.applier.change("output", midiObject.error);
+                    transaction.fireChangeRequest({ path: "errorString", value: errorString});
+                    transaction.fireChangeRequest({ path: "output", value: midiObject.error});
                 }
-                that.applier.change("output", JSON.stringify(midiObject, null, 2));
+                else {
+                    transaction.fireChangeRequest({ path: "output", value: JSON.stringify(midiObject, null, 2)});
+                }
+
+                transaction.commit();
             });
         }
     };

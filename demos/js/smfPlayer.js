@@ -7,17 +7,16 @@
     "use strict";
     var youme = fluid.registerNamespace("youme");
 
-    // TODO: Add support / controls for looping.  Maybe switch to "repeat" events?
     fluid.defaults("youme.demos.smf.player", {
         gradeNames: ["youme.templateRenderer", "youme.messageSender"],
         markup: {
-            container: "<div class='smf-player'><input type='file' class='smf-player-file-input'/><div class='playback-controls'></div><div class='timestamp'></div><div><h3>Ticks Elapsed</h3><p class='ticks-elapsed'>0</p></div><div class='outputs'></div></div>"
+            container: "<div class='smf-player'><input type='file' class='smf-player-file-input'/><div class='smf-metadata'></div><div class='playback-footer'><div class='playback-controls'></div><div class='timestamp'></div></div><div><div class='outputs'></div></div>"
         },
         selectors: {
             controls: ".playback-controls",
             fileInput: ".smf-player-file-input",
             outputs: ".outputs",
-            ticksElapsed: ".ticks-elapsed",
+            smfMetadata: ".smf-metadata",
             timestamp: ".timestamp"
         },
 
@@ -36,6 +35,8 @@
             // MIDI file information
             midiObject: {},
 
+            smfMetadata: {},
+
             // Onscreen timestamp
             hour: 0,
             minute: 0,
@@ -43,9 +44,6 @@
             frame: 0,
 
             fps: 30,
-
-            // TODO: Hide this once we figure out the odd timing issues with various files.
-            ticksElapsed: 0,
 
             isRunning: false
         },
@@ -75,27 +73,20 @@
             }
         },
 
-        modelRelay: {
-            ticksElapsed: {
-                source: "ticksElapsed",
-                target: "{that}.model.dom.ticksElapsed.text"
-            }
-        },
-
         components: {
-            timestamp: {
-                type: "youme.demos.timestamp",
-                container: "{that}.dom.timestamp",
-                options: {
-                    model: {
-                        timestamp: "{youme.demos.smf.player}.model.timestamp",
-                        hour: "{youme.demos.smf.player}.model.hour",
-                        minute: "{youme.demos.smf.player}.model.minute",
-                        second: "{youme.demos.smf.player}.model.second",
-                        frame: "{youme.demos.smf.player}.model.frame"
-                    }
-                }
-            },
+            // timestamp: {
+            //     type: "youme.demos.timestamp",
+            //     container: "{that}.dom.timestamp",
+            //     options: {
+            //         model: {
+            //             timestamp: "{youme.demos.smf.player}.model.timestamp",
+            //             hour: "{youme.demos.smf.player}.model.hour",
+            //             minute: "{youme.demos.smf.player}.model.minute",
+            //             second: "{youme.demos.smf.player}.model.second",
+            //             frame: "{youme.demos.smf.player}.model.frame"
+            //         }
+            //     }
+            // },
             outputs: {
                 type: "youme.multiPortSelectorView.outputs",
                 container: "{that}.dom.outputs"
@@ -106,10 +97,12 @@
                 options: {
                     components: {
                         clock: {
+                            // TODO: Test start/stop with RAF and see if it works better.
                             // type: "berg.clock.raf",
                             type: "berg.clock.autoAudioContext",
                             options: {
-                                freq: 120 // times per second
+                                freq: 14400
+                                // freq: 120 // times per second
                                 // freq: 60
                             }
                         }
@@ -168,6 +161,15 @@
                         }
                     }
                 }
+            },
+            metadata: {
+                type: "youme.demos.smf.metadata",
+                container: "{that}.dom.smfMetadata",
+                options: {
+                    model: {
+                        midiObject: "{youme.demos.smf.player}.model.midiObject"
+                    }
+                }
             }
         }
     });
@@ -216,126 +218,74 @@
                 //   1: multiple parallel tracks, meta events (including timing) in the first track.
                 //   2: multiple parallel tracks with independent timing per track.
 
-                // When working with type 1 files, we need to hold onto meta events such as tempo for all tracks.
-                var commonMetaEvents = [];
+                // TODO: Add support for format 2, where each track has its own tempo map.
+                // The default beat time, 0.5 seconds, divided by the default ticks/beat, 60.
+                // var secondsPerTick = 0.008333333333333;
+                var secondsPerTick = that.model.secondsPerTick;
 
-                // We want to stop after the last tick required for any track.
-                var maxTrackTime = 0;
-                fluid.each(that.model.midiObject.tracks, function (singleTrack, trackNumber) {
-                    if (that.model.midiObject.header.format === 1 && trackNumber === 0) {
-                        // TODO: Pull out the FPS and initial tempo for timekeeping purposes.
-                        commonMetaEvents = singleTrack.events;
-                    }
-                    else {
-                        var eventsToProcess = commonMetaEvents.concat(singleTrack.events);
-                        eventsToProcess.sort(youme.demos.smf.player.sortByTicksElapsed);
+                // Arbitrary default to line up "ticks per quarter note" with the timestamp.
+                var fps = 30;
 
-                        // Start with what's in the header and update as we go.
-                        var ticksPerQuarterNote = that.model.midiObject.header.division.resolution;
+                if (that.model.midiObject.header.division.type === "ticksPerQuarterNote") {
+                    // Until we have tempo information, use the default length of a quarter note, i.e. a half second.
+                    secondsPerTick = 0.5 / that.model.midiObject.header.division.resolution;
+                }
+                // { type: "framesPerSecond", fps: 30, ticksPerFrame: 80}},
+                else if (that.model.midiObject.header.division.type === "framesPerSecond") {
+                    fps = that.model.midiObject.header.division.fps;
+                    secondsPerTick = 1 / fps / that.model.midiObject.header.division.ticksPerFrame;
+                }
 
-                        // Arbitrary default to line up "ticks per quarter note" with the timestamp.
-                        var fps = 30;
 
-                        var secondsPerQuarterNote = .5;
-
-                        // The default beat time, 0.5 seconds, divided by the default ticks/beat, 60.
-                        // var secondsPerTick = 0.008333333333333;
-                        var secondsPerTick = that.model.secondsPerTick;
-
-                        if (that.model.midiObject.header.division.type === "ticksPerQuarterNote") {
-                            secondsPerTick = secondsPerQuarterNote / ticksPerQuarterNote;
-                        }
-                        // { type: "framesPerSecond", fps: 30, ticksPerFrame: 80}},
-                        else if (that.model.midiObject.header.division.type === "framesPerSecond") {
-                            fps = that.model.midiObject.header.division.fps;
-                            secondsPerTick = 1 / fps / that.model.midiObject.header.division.ticksPerFrame;
-                        }
-
-                        var startTime = 0;
-
-                        fluid.each(eventsToProcess, function (singleEvent) {
-                            // Process meta events first, as tempo changes are forward-facing, i.e. from this point on.
-                            // Empirical secondsPerTick for "hushd": 0.002
-                            // Empirical secondsPerTick for "my master": 0.0006
-                            // Empirical secondsPerTick for "who are you": 0.00075
-                            if (singleEvent.metaEvent) {
-                                if (singleEvent.metaEvent.type === "tempo") {
-                                    // TODO: Confirm that this is appropriate for `framesPerSecond` time division (if we can
-                                    //       ever find an example file in the wild).
-
-                                    // Another way of putting "microseconds per quarter-note" is "24ths of a microsecond per MIDI clock"
-                                    secondsPerQuarterNote = singleEvent.metaEvent.value / 1000000;
-                                    secondsPerTick = secondsPerQuarterNote / ticksPerQuarterNote;
-                                }
-
-                                // TODO: Add support for displaying text and lyrics?
-                            }
-
-                            // Time should always move forward for messages, but should only move forward for
-                            // meta-events if we are working with format 0 or 2.
-                            if (singleEvent.tickDelta && (singleEvent.message || that.model.midiObject.header.format !== 1)) {
-                                // Calculate the time delta from the "tick delta".
-                                startTime += singleEvent.tickDelta * secondsPerTick;
-                                maxTrackTime = Math.max(startTime, maxTrackTime);
-                            }
-
-                            if (singleEvent.message) {
-                                // TODO: Figure out a saner way to optionally force all notes to one channel.
-                                var singleChannelMessage = fluid.extend({}, singleEvent.message, { channel: 0});
-                                that.scheduler.schedule({
-                                    type: "once",
-                                    time: startTime,
-                                    callback: function () {
-                                        that.applier.change("ticksElapsed", singleEvent.ticksElapsed);
-                                        that.events.sendMessage.fire(singleChannelMessage);
-                                    }
-                                });
-                            }
-                        });
-                    }
-                });
+                // Play format 2 tracks one after the other.
+                if (that.model.midiObject.header.format === 2) {
+                    var allTrackEvents = [];
+                    fluid.each(that.model.midiObject.tracks, function (singleTrack) {
+                        allTrackEvents.push(...singleTrack.events);
+                    });
+                    youme.demos.smf.player.scheduleNextTickEvents(that, allTrackEvents, 1, secondsPerTick);
+                }
+                // Play everything else in parallel, i.e. all tracks at once.
+                else {
+                    var tracksPlaying = that.model.midiObject.header.tracks;
+                    fluid.each(that.model.midiObject.tracks, function (singleTrack) {
+                        var trackEvents = fluid.copy(singleTrack.events);
+                        youme.demos.smf.player.scheduleNextTickEvents(that, trackEvents, tracksPlaying, secondsPerTick);
+                    });
+                }
 
                 // Run the onscreen clock independently.
-                that.currentSeconds = 0;
-                var secondsPerFrame = (1 / that.model.fps);
-                that.scheduler.schedule({
-                    type: "repeat",
-                    interval: secondsPerFrame,
-                    callback: function () {
-                        that.currentSeconds += secondsPerFrame;
-
-                        // Batch the model changes for this timestamp.
-                        var transaction = that.applier.initiate();
-
-                        var timeObject = youme.demos.smf.player.timeObjectFromSeconds(that.currentSeconds);
-
-                        // Gate all the other updates conditionally up front.
-                        if (timeObject.second !== that.model.second) {
-                            transaction.fireChangeRequest({ path: "second", value: timeObject.second});
-                        }
-
-                        if (timeObject.minute !== that.model.minute) {
-                            transaction.fireChangeRequest({ path: "minute", value: timeObject.minute});
-                        }
-
-                        if (timeObject.hour !== that.model.hour) {
-                            transaction.fireChangeRequest({ path: "hour", value: timeObject.hour});
-                        }
-
-                        var newFrame = (that.model.frame + 1) % that.model.fps;
-                        transaction.fireChangeRequest({ path: "frame", value: newFrame});
-                        transaction.commit();
-                    }
-                });
-
-                // Stop playing at the end of the longest track.
-                that.scheduler.schedule({
-                    type: "once",
-                    time: maxTrackTime,
-                    callback: function () {
-                        that.applier.change("isRunning", false);
-                    }
-                });
+                // that.currentSeconds = 0;
+                // var secondsPerFrame = (1 / that.model.fps);
+                // that.scheduler.schedule({
+                //     type: "repeat",
+                //     interval: secondsPerFrame,
+                //     callback: function () {
+                //         that.currentSeconds += secondsPerFrame;
+                //
+                //         // Batch the model changes for this timestamp.
+                //         var transaction = that.applier.initiate();
+                //
+                //         var timeObject = youme.demos.smf.player.timeObjectFromSeconds(that.currentSeconds);
+                //
+                //         // Gate all the other updates conditionally up front.
+                //         if (timeObject.second !== that.model.second) {
+                //             transaction.fireChangeRequest({ path: "second", value: timeObject.second});
+                //         }
+                //
+                //         if (timeObject.minute !== that.model.minute) {
+                //             transaction.fireChangeRequest({ path: "minute", value: timeObject.minute});
+                //         }
+                //
+                //         if (timeObject.hour !== that.model.hour) {
+                //             transaction.fireChangeRequest({ path: "hour", value: timeObject.hour});
+                //         }
+                //
+                //         var newFrame = (that.model.frame + 1) % that.model.fps;
+                //         transaction.fireChangeRequest({ path: "frame", value: newFrame});
+                //         transaction.commit();
+                //     }
+                // });
 
                 that.scheduler.start();
             }
@@ -345,12 +295,12 @@
         }
         else {
             // Clear the current timestamp.
-            var transaction = that.applier.initiate();
-            transaction.fireChangeRequest({ path: "second", value: 0});
-            transaction.fireChangeRequest({ path: "minute", value: 0});
-            transaction.fireChangeRequest({ path: "hour", value: 0 });
-            transaction.fireChangeRequest({ path: "frame", value: 0});
-            transaction.commit();
+            // var transaction = that.applier.initiate();
+            // transaction.fireChangeRequest({ path: "second", value: 0});
+            // transaction.fireChangeRequest({ path: "minute", value: 0});
+            // transaction.fireChangeRequest({ path: "hour", value: 0 });
+            // transaction.fireChangeRequest({ path: "frame", value: 0});
+            // transaction.commit();
 
             try {
                 that.scheduler.stop();
@@ -360,6 +310,71 @@
                 fluid.log(fluid.logLevel.WARN, "Error stopping scheduler.");
             }
         }
+    };
+
+    youme.demos.smf.player.scheduleNextTickEvents = function (that, trackEvents, tracksPlaying, secondsPerTick) {
+        var eventsThisTick = [];
+        var nextEvent = trackEvents.shift();
+        eventsThisTick.push(nextEvent);
+        while (fluid.get(trackEvents, "0.tickDelta") === 0) {
+            eventsThisTick.push(trackEvents.shift());
+        }
+
+        var startTime = 0;
+        if (nextEvent.tickDelta && (nextEvent.message || that.model.midiObject.header.format !== 1)) {
+            // Calculate the time delta from the "tick delta".
+            startTime = nextEvent.tickDelta * secondsPerTick;
+        }
+
+        // We schedule per "tick delta" and move forward one batch at a time, so that there can only be a handful of
+        // events scheduled at any one time.
+
+        // Schedule the processing of the next batch independently of messages so that they don't delay the timing.
+        if (trackEvents.length) {
+            that.scheduler.schedule({
+                type: "once",
+                time: startTime,
+                callback: function () {
+                    youme.demos.smf.player.scheduleNextTickEvents(that, trackEvents, tracksPlaying, secondsPerTick);
+                }
+            });
+        }
+
+        fluid.each(eventsThisTick, function (singleEvent) {
+            that.scheduler.schedule({
+                type: "once",
+                time: startTime,
+                callback: function () {
+                    if (singleEvent.metaEvent) {
+                        if (singleEvent.metaEvent.type === "tempo") {
+                            // TODO: Confirm that this is appropriate for `framesPerSecond` time division (if we can
+                            //       ever find an example file in the wild).
+
+                            // Another way of putting "microseconds per quarter-note" is "24ths of a microsecond per MIDI clock"
+                            var secondsPerQuarterNote = singleEvent.metaEvent.value / 1000000;
+                            secondsPerTick = secondsPerQuarterNote / that.model.midiObject.header.division.resolution;
+                        }
+                        else if (singleEvent.metaEvent.type === "endOfTrack") {
+                            tracksPlaying--;
+                            // Stop when there are no more tracks playing.
+                            if (tracksPlaying === 0) {
+                                that.applier.change("isRunning", false);
+                                that.scheduler.stop();
+                            }
+                        }
+
+                        // TODO: Add support for displaying text and lyrics?
+                    }
+
+                    if (singleEvent.message) {
+                        // TODO: Figure out a saner way to optionally force all notes to one channel.
+                        // var singleChannelMessage = fluid.extend({}, singleEvent.message, { channel: 0});
+                        // that.events.sendMessage.fire(singleChannelMessage);
+                        that.events.sendMessage.fire(singleEvent.message);
+                    }
+                }
+            });
+        });
     };
 
     youme.demos.smf.player.timeObjectFromSeconds = function (currentSeconds) {
