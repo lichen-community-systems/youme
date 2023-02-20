@@ -101,26 +101,56 @@
     // Calculate duration of song.
     youme.demos.smf.metadata.extractTiming = function (midiObject) {
         var timingObject = {
-            duration: 0
+            duration: 0,
+            tracks: []
         };
 
-        var allEvents = [];
-        fluid.each(midiObject.tracks, function (singleTrack) {
-            allEvents.push(...singleTrack.events);
+        var sharedEvents = midiObject.tracks[0].events;
+        fluid.each(midiObject.tracks, function (singleTrack, trackIndex) {
+            var eventsToEvaluate = singleTrack.events;
+            if (midiObject.header.format === 1 && trackIndex > 0) {
+                eventsToEvaluate = singleTrack.events.concat(sharedEvents).sort(youme.demos.smf.metadata.sortByTicksElapsed);
+            }
+            var trackTiming = youme.demos.smf.metadata.extractTrackTiming(midiObject, eventsToEvaluate);
+            timingObject.tracks[trackIndex] = trackTiming;
         });
-        if (midiObject.header.format !== 2) {
-            allEvents.sort(youme.demos.smf.metadata.sortByTicksElapsed);
+
+        // If there's only one track, use its data as the summary.
+        timingObject.duration = timingObject.tracks[0].duration;
+        timingObject.smallestPauseSeconds = timingObject.tracks[0].smallestPauseSeconds || 999999999;
+
+        if (midiObject.header.format !== 0) {
+            fluid.each(timingObject.tracks, function (singleTrackTiming) {
+                // Tracks (like metadata tracks) might fire all events at once, in which case there's no pause to track.
+                if (singleTrackTiming.smallestPauseSeconds) {
+                    timingObject.smallestPauseSeconds = Math.min(timingObject.smallestPauseSeconds, singleTrackTiming.smallestPauseSeconds);
+                }
+
+                // In format 1, we use the tempo from track 0 and check the length of the remaining tracks independently.
+                if (midiObject.header.format === 1) {
+                    timingObject.duration = Math.max(timingObject.duration, singleTrackTiming.duration);
+                }
+                // For format 2, the running time is a summary of all the times
+                else if (midiObject.header.format === 2) {
+                    timingObject.duration += singleTrackTiming.duration;
+                }
+            });
         }
 
+        return timingObject;
+    };
+
+    youme.demos.smf.metadata.extractTrackTiming = function (midiObject, eventsToEvaluate) {
+        var trackTiming = { duration: 0 };
         var secondsPerTick =  0.5 / midiObject.header.division.resolution;
-        fluid.each(allEvents, function (singleEvent) {
+        fluid.each(eventsToEvaluate, function (singleEvent) {
             if (singleEvent.tickDelta && (singleEvent.message || (singleEvent.metaEvent && midiObject.header.format !== 1))) {
                 var secondsDelta = singleEvent.tickDelta * secondsPerTick;
 
                 // Track the smallest non-zero pause so that we can understand how fast a clock we need.
-                timingObject.smallestPauseSeconds = timingObject.smallestPauseSeconds ? Math.min(timingObject.smallestPauseSeconds, secondsDelta) : secondsDelta;
+                trackTiming.smallestPauseSeconds = trackTiming.smallestPauseSeconds ? Math.min(trackTiming.smallestPauseSeconds, secondsDelta) : secondsDelta;
 
-                timingObject.duration += secondsDelta;
+                trackTiming.duration += secondsDelta;
             }
 
             // Update the timing if needed.
@@ -129,8 +159,7 @@
                 secondsPerTick = secondsPerQuarterNote / midiObject.header.division.resolution;
             }
         });
-
-        return timingObject;
+        return trackTiming;
     };
 
     // Sort in numerical order by "elapsed ticks".
