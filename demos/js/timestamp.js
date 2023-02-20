@@ -11,6 +11,10 @@
     fluid.defaults("youme.demos.timestamp", {
         gradeNames: ["youme.templateRenderer"],
         model: {
+            isRunning: false,
+
+            totalSeconds: 0,
+
             hour: 0,
             minute: 0,
             second: 0,
@@ -23,7 +27,13 @@
             frame: ".timestamp-frame"
         },
         markup: {
-            container: "<div class='timestamp'><div class='timestamp-hour'></div><div class='timestamp-minute'></div><div class='timestamp-second'></div><div class='timestamp-frame'></div></div>"
+            container: "<div class='timestamp'><div class='timestamp-hour'></div><div class='timestamp-minute'></div><div class='timestamp-second'></div></div>"
+        },
+        modelListeners: {
+            isRunning: {
+                funcName: "youme.demos.timestamp.toggleScheduler",
+                args: ["{berg.scheduler}", "{that}.model.isRunning", "{that}.tickSecond"] // isRunning, tickCallback
+            }
         },
         modelRelay: {
             hour: {
@@ -46,16 +56,63 @@
                     type: "youme.demos.timestamp.padStart"
                 },
                 target: "{that}.model.dom.second.text"
-            },
-            frame: {
-                singleTransform: {
-                    input: "{that}.model.frame",
-                    type: "youme.demos.timestamp.padStart"
-                },
-                target: "{that}.model.dom.frame.text"
+            }
+        },
+        invokers: {
+            tickSecond: {
+                funcName: "youme.demos.timestamp.tickSecond",
+                args: ["{that}"]
+            }
+        },
+        components: {
+            scheduler: {
+                type: "berg.scheduler",
+                options: {
+                    components: {
+                        clock: {
+                            type: "berg.clock.raf",
+                            options: {
+                                freq: 1
+                            }
+                        }
+                    }
+                }
             }
         }
     });
+
+    youme.demos.timestamp.tickSecond = function (that) {
+        var newSeconds = that.model.totalSeconds + 1;
+
+        var transaction = that.applier.initiate();
+        transaction.fireChangeRequest({ path: "totalSeconds", value: newSeconds});
+
+        var newSecond = (60 + Math.round(newSeconds)) % 60;
+        transaction.fireChangeRequest({ path: "second", value: newSecond});
+
+        var newMinute = (60 + Math.floor( newSeconds / 60)) % 60;
+        transaction.fireChangeRequest({ path: "minute", value: newMinute});
+
+        var newHour   = (24 + Math.floor(newSeconds / 3600)) % 24;
+        transaction.fireChangeRequest({ path: "hour", value: newHour});
+
+        transaction.commit();
+    };
+
+    youme.demos.timestamp.toggleScheduler = function (scheduler, isRunning, callback) {
+        if (isRunning) {
+            scheduler.start();
+            scheduler.schedule({
+                type: "repeat",
+                freq: 1,
+                callback: callback
+            });
+        }
+        else {
+            scheduler.stop();
+            scheduler.clearAll();
+        }
+    };
 
     youme.demos.timestamp.padStart = function (number) {
         return (number).toString().padStart(2, "0");

@@ -24,10 +24,6 @@
             createScheduler: null
         },
 
-        members: {
-            currentSeconds: 0
-        },
-
         model: {
             // TODO: Display file metadata onscreen.
             fileName: "No file selected",
@@ -36,12 +32,6 @@
             midiObject: {},
 
             smfMetadata: {},
-
-            // Onscreen timestamp
-            hour: 0,
-            minute: 0,
-            second: 0,
-            frame: 0,
 
             fps: 30,
 
@@ -74,19 +64,15 @@
         },
 
         components: {
-            // timestamp: {
-            //     type: "youme.demos.timestamp",
-            //     container: "{that}.dom.timestamp",
-            //     options: {
-            //         model: {
-            //             timestamp: "{youme.demos.smf.player}.model.timestamp",
-            //             hour: "{youme.demos.smf.player}.model.hour",
-            //             minute: "{youme.demos.smf.player}.model.minute",
-            //             second: "{youme.demos.smf.player}.model.second",
-            //             frame: "{youme.demos.smf.player}.model.frame"
-            //         }
-            //     }
-            // },
+            timestamp: {
+                type: "youme.demos.timestamp",
+                container: "{that}.dom.timestamp",
+                options: {
+                    model: {
+                        isRunning: "{youme.demos.smf.player}.model.isRunning"
+                    }
+                }
+            },
             outputs: {
                 type: "youme.multiPortSelectorView.outputs",
                 container: "{that}.dom.outputs"
@@ -97,12 +83,10 @@
                 options: {
                     components: {
                         clock: {
-                            // TODO: Test start/stop with RAF and see if it works better.
                             // type: "berg.clock.raf",
                             type: "berg.clock.autoAudioContext",
                             options: {
-                                freq: 14400
-                                // freq: 120 // times per second
+                                freq: 120
                                 // freq: 60
                             }
                         }
@@ -209,16 +193,12 @@
     youme.demos.smf.player.handleRunningStateChange = function (that) {
         if (that.model.isRunning) {
             if (fluid.get(that, "model.midiObject.tracks.length")) {
-                // This should no longer be necessary, as we have recreated the scheduler.
-                // that.scheduler.clearAll();
-
                 // There are three file types we need to support:
                 //
                 //   0: single track with meta events generally at timestamp 0.
                 //   1: multiple parallel tracks, meta events (including timing) in the first track.
                 //   2: multiple parallel tracks with independent timing per track.
 
-                // TODO: Add support for format 2, where each track has its own tempo map.
                 // The default beat time, 0.5 seconds, divided by the default ticks/beat, 60.
                 // var secondsPerTick = 0.008333333333333;
                 var secondsPerTick = that.model.secondsPerTick;
@@ -254,39 +234,6 @@
                     });
                 }
 
-                // Run the onscreen clock independently.
-                // that.currentSeconds = 0;
-                // var secondsPerFrame = (1 / that.model.fps);
-                // that.scheduler.schedule({
-                //     type: "repeat",
-                //     interval: secondsPerFrame,
-                //     callback: function () {
-                //         that.currentSeconds += secondsPerFrame;
-                //
-                //         // Batch the model changes for this timestamp.
-                //         var transaction = that.applier.initiate();
-                //
-                //         var timeObject = youme.demos.smf.player.timeObjectFromSeconds(that.currentSeconds);
-                //
-                //         // Gate all the other updates conditionally up front.
-                //         if (timeObject.second !== that.model.second) {
-                //             transaction.fireChangeRequest({ path: "second", value: timeObject.second});
-                //         }
-                //
-                //         if (timeObject.minute !== that.model.minute) {
-                //             transaction.fireChangeRequest({ path: "minute", value: timeObject.minute});
-                //         }
-                //
-                //         if (timeObject.hour !== that.model.hour) {
-                //             transaction.fireChangeRequest({ path: "hour", value: timeObject.hour});
-                //         }
-                //
-                //         var newFrame = (that.model.frame + 1) % that.model.fps;
-                //         transaction.fireChangeRequest({ path: "frame", value: newFrame});
-                //         transaction.commit();
-                //     }
-                // });
-
                 that.scheduler.start();
             }
             else {
@@ -294,14 +241,6 @@
             }
         }
         else {
-            // Clear the current timestamp.
-            // var transaction = that.applier.initiate();
-            // transaction.fireChangeRequest({ path: "second", value: 0});
-            // transaction.fireChangeRequest({ path: "minute", value: 0});
-            // transaction.fireChangeRequest({ path: "hour", value: 0 });
-            // transaction.fireChangeRequest({ path: "frame", value: 0});
-            // transaction.commit();
-
             try {
                 that.scheduler.stop();
             }
@@ -377,16 +316,6 @@
         });
     };
 
-    youme.demos.smf.player.timeObjectFromSeconds = function (currentSeconds) {
-        var timeObject = {};
-
-        timeObject.second = (60 + Math.round(currentSeconds)) % 60;
-        timeObject.minute = (60 + Math.floor( currentSeconds / 60)) % 60;
-        timeObject.hour   = (24 + Math.floor(currentSeconds / 3600)) % 24;
-
-        return timeObject;
-    };
-
     youme.demos.smf.player.handleFileInputChange = function (that, htmlInputElement) {
         // Stop playing.
         that.applier.change("isRunning", false);
@@ -410,16 +339,6 @@
                 transaction.fireChangeRequest({ path: "midiObject", value: midiObject});
                 transaction.commit();
             });
-        }
-    };
-
-    // Sort in numerical order by "elapsed ticks".
-    youme.demos.smf.player.sortByTicksElapsed = function (a, b) {
-        if (a.ticksElapsed !== undefined && b.ticksElapsed !== undefined) {
-            return a.ticksElapsed - b.ticksElapsed;
-        }
-        else {
-            fluid.fail("There should be no events without elapsed ticks.");
         }
     };
 })(fluid);

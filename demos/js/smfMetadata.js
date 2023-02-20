@@ -52,7 +52,8 @@
         var metaDataPropertiesToTrack = ["name", "copyright", "text"];
         fluid.each(midiObject.tracks, function (singleTrack, trackNumber) {
             var trackObject = {
-                noteCount: 0
+                messagesByType: {},
+                metaEventsByType: {}
             };
 
             if (midiObject.header.format === 1) {
@@ -67,9 +68,12 @@
                 var metaEvent = fluid.get(singleEvent, "metaEvent");
 
                 if (message) {
-                    if (message.type === "noteOn" && message.velocity > 0) {
-                        trackObject.noteCount++;
-                    }
+                    var currentMessageTypeCount = fluid.get(trackObject, ["messagesByType", message.type]) || 0;
+                    fluid.set(trackObject, ["messagesByType", message.type], currentMessageTypeCount + 1);
+                }
+                else if (metaEvent) {
+                    var currentMetaEventTypeCount = fluid.get(trackObject, ["eventsByType", metaEvent.type]) || 0;
+                    fluid.set(trackObject, ["metaEventsByType", metaEvent.type], currentMetaEventTypeCount + 1);
                 }
 
                 if (metaEvent) {
@@ -82,9 +86,60 @@
                         }
                     }
                 }
-            });
+            }, singleTrack.events);
             smfMetadata.tracks.push(trackObject);
         });
+
+        if (midiObject.header) {
+            var timingObject = youme.demos.smf.metadata.extractTiming(midiObject);
+            smfMetadata.timing = timingObject;
+        }
+
         return smfMetadata;
+    };
+
+    // Calculate duration of song.
+    youme.demos.smf.metadata.extractTiming = function (midiObject) {
+        var timingObject = {
+            duration: 0
+        };
+
+        var allEvents = [];
+        fluid.each(midiObject.tracks, function (singleTrack) {
+            allEvents.push(...singleTrack.events);
+        });
+        if (midiObject.header.format !== 2) {
+            allEvents.sort(youme.demos.smf.metadata.sortByTicksElapsed);
+        }
+
+        var secondsPerTick =  0.5 / midiObject.header.division.resolution;
+        fluid.each(allEvents, function (singleEvent) {
+            if (singleEvent.tickDelta && (singleEvent.message || (singleEvent.metaEvent && midiObject.header.format !== 1))) {
+                var secondsDelta = singleEvent.tickDelta * secondsPerTick;
+
+                // Track the smallest non-zero pause so that we can understand how fast a clock we need.
+                timingObject.smallestPauseSeconds = timingObject.smallestPauseSeconds ? Math.min(timingObject.smallestPauseSeconds, secondsDelta) : secondsDelta;
+
+                timingObject.duration += secondsDelta;
+            }
+
+            // Update the timing if needed.
+            if (singleEvent.metaEvent && singleEvent.metaEvent.type === "tempo") {
+                var secondsPerQuarterNote = singleEvent.metaEvent.value / 1000000;
+                secondsPerTick = secondsPerQuarterNote / midiObject.header.division.resolution;
+            }
+        });
+
+        return timingObject;
+    };
+
+    // Sort in numerical order by "elapsed ticks".
+    youme.demos.smf.metadata.sortByTicksElapsed = function (a, b) {
+        if (a.ticksElapsed !== undefined && b.ticksElapsed !== undefined) {
+            return a.ticksElapsed - b.ticksElapsed;
+        }
+        else {
+            fluid.fail("There should be no events without elapsed ticks.");
+        }
     };
 })(fluid);

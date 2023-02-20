@@ -31,8 +31,7 @@
                     model: {
                         hour: "{youme.demos.quarterFrame.receive}.model.hour",
                         minute: "{youme.demos.quarterFrame.receive}.model.minute",
-                        second: "{youme.demos.quarterFrame.receive}.model.second",
-                        frame: "{youme.demos.quarterFrame.receive}.model.frame"
+                        second: "{youme.demos.quarterFrame.receive}.model.second"
                     }
                 }
             },

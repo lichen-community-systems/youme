@@ -9,15 +9,17 @@
     fluid.defaults("youme.demos.quarterFrame.send", {
         gradeNames: ["youme.templateRenderer", "youme.messageSender"],
         markup: {
-            container: "<div class='quarter-frame'><button class='start-button'>Start</button><div class='main-panel'><div class='timestamp'></div><div class='outputs'></div></div></div>"
+            container: "<div class='quarter-frame'><button class='start-button'>Start</button><button class='stop-button'>Stop</button><div class='timestamp'></div><div class='outputs'></div></div>"
         },
         selectors: {
-            mainPanel: ".main-panel",
             outputs: ".outputs",
             startButton: ".start-button",
+            stopButton: ".stop-button",
             timestamp: ".timestamp"
         },
         model: {
+            isRunning: false,
+
             timestamp: 0,
             direction: 1,
             piece: 0,
@@ -34,16 +36,52 @@
                 args: ["{that}"]
             },
             handleStartButtonClick: {
-                funcName: "youme.demos.quarterFrame.send.startScheduler",
-                args: ["{that}"]
+                funcName: "youme.demos.quarterFrame.send.handleButtonClick",
+                args: ["{that}", true] // newIsRunning
+            },
+            handleStopButtonClick: {
+                funcName: "youme.demos.quarterFrame.send.handleButtonClick",
+                args: ["{that}", false] // newIsRunning
+            }
+        },
+
+        modelRelay: {
+            startButtonToggle: {
+                target: "{that}.model.dom.startButton.enabled",
+                singleTransform: {
+                    "type": "fluid.transforms.condition",
+                    "condition": "{that}.model.isRunning",
+                    "true": false,
+                    "false": true
+                }
+            },
+            stopButtonToggle: {
+                source: "isRunning",
+                target: "{that}.model.dom.stopButton.enabled"
+            }
+        },
+
+        modelListeners: {
+            isRunning: {
+                funcName: "youme.demos.quarterFrame.send.toggleScheduler",
+                args: ["{berg.scheduler}", "{change}.value"] // scheduler, isRunning
             }
         },
 
         listeners: {
+            "onCreate.scheduleUpdates": {
+                funcName: "youme.demos.quarterFrame.send.scheduleUpdates",
+                args: ["{berg.scheduler}", "{that}.handleQuarterFrame"] // scheduler, invoker
+            },
             "onCreate.bindStartButton": {
                 this: "{that}.dom.startButton",
                 method: "click",
                 args: ["{that}.handleStartButtonClick"]
+            },
+            "onCreate.bindStopButton": {
+                this: "{that}.dom.stopButton",
+                method: "click",
+                args: ["{that}.handleStopButtonClick"]
             },
             "sendMessage.sendToOutputs": "{outputs}.events.sendMessage.fire"
         },
@@ -55,11 +93,7 @@
                 container: "{that}.dom.timestamp",
                 options: {
                     model: {
-                        timestamp: "{youme.demos.quarterFrame.send}.model.timestamp",
-                        hour: "{youme.demos.quarterFrame.send}.model.hour",
-                        minute: "{youme.demos.quarterFrame.send}.model.minute",
-                        second: "{youme.demos.quarterFrame.send}.model.second",
-                        frame: "{youme.demos.quarterFrame.send}.model.frame"
+                        isRunning: "{youme.demos.quarterFrame.send}.model.isRunning"
                     }
                 }
             },
@@ -72,9 +106,9 @@
                 options: {
                     components: {
                         clock: {
-                            type: "berg.clock.autoAudioContext",
+                            type: "berg.clock.raf",
                             options: {
-                                freq: 120 // times per second
+                                freq: 30 // times per second
                             }
                         }
                     }
@@ -83,24 +117,27 @@
         }
     });
 
+    youme.demos.quarterFrame.send.handleButtonClick = function (that, newIsRunning) {
+        that.applier.change("isRunning", newIsRunning);
+    };
+
     // I am choosing not to properly deal with drop frame, and pretend it's just 30 FPS.
     youme.demos.quarterFrame.send.rates = [24, 25, 30, 30];
 
-    youme.demos.quarterFrame.send.startScheduler = function (that) {
-        var startButtonElement = that.locate("startButton");
-        startButtonElement.hide();
+    youme.demos.quarterFrame.send.toggleScheduler = function (scheduler, isRunning) {
+        if (isRunning) {
+            scheduler.start();
+        }
+        else {
+            scheduler.stop();
+        }
+    };
 
-        var mainPanelElement = that.locate("mainPanel");
-        mainPanelElement.show();
-
-        that.scheduler.start();
-
-        // May need a setTimeout or other delay depending on whether this bug hits us:
-        // https://github.com/colinbdclark/bergson/blob/master/examples/audiocontext-clock/audio-context-clock-example.js
-        that.scheduler.schedule({
+    youme.demos.quarterFrame.send.scheduleUpdates = function (scheduler, callback) {
+        scheduler.schedule({
             type: "repeat",
-            freq: 120,
-            callback: that.handleQuarterFrame
+            freq: 30,
+            callback: callback
         });
     };
 

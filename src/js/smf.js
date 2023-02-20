@@ -509,8 +509,11 @@
                 // Thanks to this page for clarifying how this value is encoded:
                 // https://www.recordingblogs.com/wiki/midi-key-signature-meta-message
                 metaEventObject.type = "keySignature";
+                // The most significant bit is the sign.
                 var sign = (metaEventBytes[0] & 128) ? -1 : 1;
-                var value = metaEventBytes[0] & 127;
+                // Of the other seven bits, only the last two bits are meaningful, as the range is 0-7.
+                // We gate them this way because some programs set the middle bits (Noteworthy Composer).
+                var value = metaEventBytes[0] & 7;
                 metaEventObject.sf = sign * value;
                 metaEventObject.mi = metaEventBytes[1] ? "minor" : "major";
                 break;

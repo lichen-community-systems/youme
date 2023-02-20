@@ -3,11 +3,8 @@
  *
  *  Licensed under the MIT license, see LICENSE for details.
  */
-.main-panel {
-    display: none;
-}
-
-.start-button {
+.start-button,
+.stop-button {
     border-radius: 0.25rem;
     padding: 1rem;
 }
