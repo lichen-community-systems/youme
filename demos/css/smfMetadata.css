@@ -5,7 +5,7 @@
  */
 .smf-metadata {
     margin-top: 1rem;
-    padding: 2rem;
+    padding-left: 2rem;
 }
 
 .smf-metadata-container {
@@ -16,13 +16,12 @@
 
 .metadata-header {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     width: 100%;
 }
 
 .metadata-header > .name {
     align-content: flex-start;
-    font-size: 2rem;
     font-weight: bold;
     width: 100%;
 }
@@ -35,5 +34,4 @@
 .text {
     font-style: italic;
     margin-top: 1rem;
-    padding: 2rem;
 }
