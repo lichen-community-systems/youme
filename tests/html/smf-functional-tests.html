@@ -1,0 +1,108 @@
+<!--
+  ~ Copyright 2023, Tony Atkins
+  ~
+  ~  Licensed under the MIT license, see LICENSE for details.
+  -->
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>"Standard" MIDI File Functional Tests</title>
+
+        <link rel="stylesheet" media="screen" href="../../node_modules/infusion/tests/lib/qunit/css/qunit.css" />
+
+        <script src="../../node_modules/infusion/dist/infusion-all.js"></script>
+        <script src="../../node_modules/infusion/tests/lib/qunit/js/qunit.js"></script>
+        <script src="../../node_modules/infusion/tests/test-core/jqUnit/js/jqUnit.js"></script>
+        <script src="/testem.js"></script>
+        <script type="text/javascript" src="/coverage/client/coverageSender.js"></script>
+
+        <script src="../../src/js/core.js"></script>
+
+        <script src="../../src/js/smf.js"></script>
+
+        <!-- Test MIDI files, available as namespaced javascript variables. -->
+        <!-- For example: youme.tests.midi["smf-spec"]["format-0.mid"]-->
+        <script src="../wrapped-midi/smf-spec/format-0.js"></script>
+        <script src="../wrapped-midi/smf-spec/format-1.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-2-tracks-type-0.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-2-tracks-type-1.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-2-tracks-type-2.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-all-gm-percussion.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-all-gm-sounds.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-all-gm2-sounds.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-all-gs-sounds.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-all-microsoft-gs-wavetable-synth-sounds.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-all-xg-sounds.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-c-major-scale.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-control-00-20-bank-select.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-control-40-damper.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-control-41-portamento.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-control-54-portamento-control.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-control-7c-omni-mode-off.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-control-7d-omni-mode-on.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-control-7e-mono-mode-on.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-control-7f-poly-mode-on.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-empty.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-gm2-doggy-78-00-38-4c.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-gm2-doggy-79-01-7b.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-gs-doggy-01-00-7b.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-karaoke-kar.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-multichannel-chords-0.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-multichannel-chords-1.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-multichannel-chords-2.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-multichannel-chords-3.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-non-midi-track.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-rpn-00-00-pitch-bend-range.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-rpn-00-01-fine-tuning.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-rpn-00-02-coarse-tuning.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-rpn-00-05-modulation-depth-range.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-smpte-offset.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-sysex-7e-06-01-id-request.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-sysex-7e-09-01-gm1-enable.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-sysex-7e-09-02-gm-disable.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-sysex-7e-09-03-gm2-enable.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-sysex-7f-04-03-master-fine-tuning.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-sysex-7f-04-04-master-coarse-tuning.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-sysex-7x-08-0x-scale-tuning.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-sysex-gs-40-1x-15-drum-part-change.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-sysex-gs-40-1x-4x-scale-tuning.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-syx-7e-06-01-id-request.syx"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-track-length.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-xg-doggy-40-00-30.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-xg-doggy-7e-00-00-54.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-corrupt-file-extra-byte.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-illegal-message-f2-xx-xx.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-illegal-message-f3-xx.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-illegal-message-f6.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-illegal-message-f8.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-illegal-message-fa.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-illegal-message-fb.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-illegal-message-fc.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-illegal-message-fe.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-corrupt-file-missing-byte.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-illegal-message-all.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-illegal-message-f1-xx.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-illegal-message-f4.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-illegal-message-f5.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-illegal-message-f9.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-illegal-message-fd.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-vlq-2-byte.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-vlq-3-byte.js"></script>
+        <script src="../wrapped-midi/jazzsoft-test-midi-files/test-vlq-4-byte.js"></script>
+
+        <script src="../js/smf-functional-tests.js"></script>
+    </head>
+
+    <body id="body">
+        <h1 id="qunit-header">"Standard" MIDI File Functional Tests</h1>
+        <h2 id="qunit-banner"></h2>
+        <div id="qunit-testrunner-toolbar"></div>
+        <h2 id="qunit-userAgent"></h2>
+        <ol id="qunit-tests"></ol>
+
+        <!-- Test HTML -->
+        <div id="main" style="display: none;">
+        </div>
+    </body>
+</html>

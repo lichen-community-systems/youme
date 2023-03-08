@@ -1,0 +1,51 @@
+<!--
+  ~ Copyright 2022, Tony Atkins
+  ~ Copyright 2011-2020, Colin Clark
+  ~
+  ~  Licensed under the MIT license, see LICENSE for details.
+  -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>"Standard" MIDI File Player Demo</title>
+
+    <script src="../node_modules/infusion/dist/infusion-all.js"></script>
+
+    <script src="../src/js/core.js"></script>
+    <script src="../src/js/smf.js"></script>
+    <script src="../src/js/system.js"></script>
+    <script src="../src/js/messageEventHolders.js"></script>
+    <script src="../src/js/connection.js"></script>
+    <script src="../src/js/portConnector.js"></script>
+    <script src="../src/js/multiPortConnector.js"></script>
+
+    <script src="../src/js/ui/templateRenderer.js"></script>
+    <script src="../src/js/ui/selectBox.js"></script>
+    <script src="../src/js/ui/multiSelectBox.js"></script>
+    <script src="../src/js/ui/portSelectorView.js"></script>
+    <script src="../src/js/ui/multiPortSelectorView.js"></script>
+    <script src="../src/js/ui/svgIcon.js"></script>
+
+    <script src="../node_modules/bergson/dist/bergson-only.js"></script>
+
+    <script src="js/timestamp.js"></script>
+    <script src="js/smfMetadata.js"></script>
+    <script src="js/smfPlayer.js"></script>
+
+    <link type="text/css" rel="stylesheet" href="../src/css/youme.css"/>
+    <link type="text/css" rel="stylesheet" href="css/timestamp.css"/>
+    <link type="text/css" rel="stylesheet" href="./css/smfMetadata.css"/>
+    <link type="text/css" rel="stylesheet" href="./css/smfPlayer.css"/>
+</head>
+<body>
+<h3>"Standard" MIDI File Player Demo</h3>
+
+<p>Upload a MIDI file and send its messages to an external MIDI output.</p>
+
+<div class="smf-player"></div>
+
+<script>
+    var smfPlayer = youme.demos.smf.player(".smf-player");
+</script>
+</body>
+</html>

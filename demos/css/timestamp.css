@@ -1,0 +1,23 @@
+/*
+ * Copyright 2023, Tony Atkins
+ *
+ *  Licensed under the MIT license, see LICENSE for details.
+ */
+
+.timestamp {
+    align-items: stretch;
+    column-gap: 2rem;
+    display: flex;
+    flex-direction: row;
+    font-size: 10rem;
+    padding: 1rem;
+}
+
+.timestamp > * {
+    align-content: center;
+    border: 1px solid #969696;
+    border-radius: 0.5rem;
+    font-family: monospace;
+    text-align: center;
+    width: 100%;
+}

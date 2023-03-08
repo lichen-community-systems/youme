@@ -1,0 +1,34 @@
+<!--
+  ~ Copyright 2023, Tony Atkins
+  ~
+  ~  Licensed under the MIT license, see LICENSE for details.
+  -->
+<html>
+    <head>
+        <title>"Standard" MIDI File Viewer</title>
+
+        <script src="../node_modules/infusion/dist/infusion-all.js"></script>
+
+        <script src="../src/js/core.js"></script>
+        <script src="../src/js/smf.js"></script>
+        <script src="../src/js/ui/templateRenderer.js"></script>
+
+        <script src="js/smfMetadata.js"></script>
+        <script src="js/smfViewer.js"></script>
+
+        <link type="text/css" rel="stylesheet" href="../src/css/youme.css"/>
+        <link type="text/css" rel="stylesheet" href="css/smfMetadata.css"/>
+        <link type="text/css" rel="stylesheet" href="css/smfViewer.css"/>
+    </head>
+    <body>
+        <h2>"Standard" MIDI File Viewer</h2>
+
+        <p>Upload a MIDI file to view its contents as a JSON structure.</p>
+
+        <div class="smf-viewer"></div>
+
+        <script type="application/javascript">
+            var smfViewer = youme.demos.smf.viewer(".smf-viewer");
+        </script>
+    </body>
+</html>

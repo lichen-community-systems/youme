@@ -4,7 +4,6 @@
  *
  *  Licensed under the MIT license, see LICENSE for details.
  */
-/*global Uint8Array*/
 (function (fluid) {
     "use strict";
     var youme = fluid.registerNamespace("youme");
@@ -232,14 +231,13 @@
 
     // Unsupported, non-API function.
     youme.read.system = function (status, data) {
-        if (status === 1) {
-            return youme.messageFailure("quarter frame MTC");
-        }
-
         var fn;
         switch (status) {
             case 0:
                 fn = youme.read.sysex;
+                break;
+            case 1:
+                fn = youme.read.quarterFrameMTC;
                 break;
             case 2:
                 fn = youme.read.songPointer;
@@ -274,11 +272,6 @@
         }
 
         return fn(data);
-    };
-
-    // Unsupported, non-API function.
-    youme.messageFailure = function (type) {
-        fluid.fail("Unsupported MIDI message type '" + type + "'.");
     };
 
     // Unsupported, non-API function.
@@ -348,6 +341,57 @@
     youme.createSystemRealtimeMessageReaders(youme.systemRealtimeMessages);
 
 
+    // Unsupported, non-API function.
+    youme.read.quarterFrameMTC = function (data) {
+        var piece = data[1] >> 4;
+        var quarterFrameObject = {
+            type: "quarterFrameMTC",
+            piece: piece
+        };
+
+        var dataBits = data[1] & 15;
+
+        switch (piece) {
+            // Frame number, least significant bits.
+            case 0:
+                quarterFrameObject.frame = dataBits;
+                break;
+            // Frame number, most significant bits.
+            case 1:
+                quarterFrameObject.frame = (dataBits & 1) << 4;
+                break;
+            // Seconds, least significant bits.
+            case 2:
+                quarterFrameObject.second = dataBits;
+                break;
+            // Seconds, most significant bits.
+            case 3:
+                quarterFrameObject.second = (dataBits & 3) << 4;
+                break;
+            // Minutes, least significant bits.
+            case 4:
+                quarterFrameObject.minute = dataBits;
+                break;
+            // Minutes, most significant bits.
+            case 5:
+                quarterFrameObject.minute = dataBits << 4;
+                break;
+            // Hour, least significant bits.
+            case 6:
+                quarterFrameObject.hour = dataBits;
+                break;
+            // Rate and hour most significant bits.
+            case 7:
+                quarterFrameObject.rate = (dataBits & 6) >>> 1;
+                quarterFrameObject.hour = (dataBits & 1) << 4;
+                break;
+            default:
+                fluid.fail("Cannot decode MIDI quarter frame MTC:\n" + fluid.prettyPrintJSON(data));
+        }
+
+        return quarterFrameObject;
+    };
+
     /**
      *
      * Take a MIDI messageSpec object and convert it to an array of raw bytes suitable for sending to a MIDI device.
@@ -383,6 +427,8 @@
                 return youme.write.largeValueMessage(14, midiMessage.channel, midiMessage);
             case "program":
                 return youme.write.programChange(midiMessage);
+            case "quarterFrameMTC":
+                return youme.write.quarterFrameMTC(midiMessage);
             case "reset":
                 return youme.write.singleByteMessage(15, 15);
             case "songPointer":
@@ -514,6 +560,94 @@
         framedData.set(data, 1);
 
         return framedData;
+    };
+
+    /**
+     * @typedef MidiTimeStampBase
+     * @type {Object}
+     * @property {number} hour - The hour of the day, from 0 to 23.
+     * @property {number} minute - The minute of the hour, from 0 to 59.
+     * @property {number} second - The second within the minute, from 0 to 59.
+     * @property {number} frame - Which frame within the second, generally between 0 and 29.
+     *
+     */
+
+    /**
+     * @typedef MTCQuarterFrameMessage
+     * @type {MidiTimeStampBase}
+     * @property {String} type - Must be set to `mtcQuarterFrameMessage`.
+     * @property {number} piece - Which "piece" of the overall structure you wish to send:
+     *                           0: Frame number (low "nibble")
+     *                           1: Frame number (high "nibble")
+     *                           2: Seconds (high "nibble")
+     *                           3: Seconds (low "nibble")
+     *                           4: Minutes (low "nibble")
+     *                           5: Minutes (high "nibble")
+     *                           6: Hour (high "nibble")
+     *                           7: Rate and Hour (low "nibble")
+     *
+     * @property {number} rate - An integer from 0 to 3 that represents which FPS standard is used:
+     *                           0: 24 FPS
+     *                           1: 25 FPS
+     *                           2: 29.75 FPS (Drop Frame)
+     *                           3: 30 FPS
+     *
+     */
+
+    /**
+     *
+     * Unsupported, non-API function.
+     *
+     * @param {MTCQuarterFrameMessage} quarterFrameMessage - A JSON object representing the quarter frame.
+     * @return {Uint8Array} - An array of bytes representing the quarter frame.
+     *
+     */
+    youme.write.quarterFrameMTC = function (quarterFrameMessage) {
+        var bytes = new Uint8Array(2);
+        bytes[0] = [0xF1];
+        bytes[1] = quarterFrameMessage.piece << 4;
+
+        // TODO: Discuss refactoring youme.write.statusByte to safely handle combining nibbles.
+        switch (quarterFrameMessage.piece) {
+            // Frame number, least significant bits.
+            case 0:
+                bytes[1] += quarterFrameMessage.frame & 15;
+                break;
+            // Frame number, most significant bits.
+            case 1:
+                bytes[1] += (quarterFrameMessage.frame & 240) >> 4;
+                break;
+            // Seconds, least significant bits.
+            case 2:
+                bytes[1] += quarterFrameMessage.second & 15;
+                break;
+            // Seconds, most significant bits.
+            case 3:
+                bytes[1] += (quarterFrameMessage.second >> 4) & 3;
+                break;
+            // Minutes, least significant bits.
+            case 4:
+                bytes[1] += quarterFrameMessage.minute & 15;
+                break;
+            // Minutes, most significant bits.
+            case 5:
+                bytes[1] += (quarterFrameMessage.minute >> 4) & 3;
+                break;
+            // Hour, least significant bits.
+            case 6:
+                bytes[1] += quarterFrameMessage.hour & 15;
+                break;
+            // Rate and hour most significant bits.
+            case 7:
+                var ratePart = (quarterFrameMessage.rate & 3) << 1;
+                var hourPart = (quarterFrameMessage.hour >> 4) & 1;
+                bytes[1] += ratePart + hourPart;
+                break;
+            default:
+                fluid.fail("Invalid MIDI quarter frame MTC:\n" + fluid.prettyPrintJSON(quarterFrameMessage));
+        }
+
+        return bytes;
     };
 
     /**

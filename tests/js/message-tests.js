@@ -4,7 +4,7 @@
  *
  *  Licensed under the MIT license, see LICENSE for details.
  */
-/*global jqUnit, Uint8Array*/
+/*global jqUnit */
 (function (fluid) {
     "use strict";
     var youme = fluid.registerNamespace("youme");
@@ -151,6 +151,79 @@
                     type: "activeSense"
                 },
                 bytes: [0xFE]
+            },
+
+            "quarter frame MTC, piece 0": {
+                messageSpec: {
+                    type: "quarterFrameMTC",
+                    piece: 0,
+                    frame: 15
+                },
+                bytes: [0xF1, 0x0F]
+            },
+
+            "quarter frame MTC, piece 1": {
+                messageSpec: {
+                    type: "quarterFrameMTC",
+                    piece: 1,
+                    frame: 16
+                },
+                bytes: [0xF1, 0x11]
+            },
+
+            "quarter frame MTC, piece 2": {
+                messageSpec: {
+                    type: "quarterFrameMTC",
+                    piece: 2,
+                    second: 15
+                },
+                bytes: [0xF1, 0x2F]
+            },
+
+            "quarter frame MTC, piece 3": {
+                messageSpec: {
+                    type: "quarterFrameMTC",
+                    piece: 3,
+                    second: 48
+                },
+                bytes: [0xF1, 0x33]
+            },
+
+            "quarter frame MTC, piece 4": {
+                messageSpec: {
+                    type: "quarterFrameMTC",
+                    piece: 4,
+                    minute: 14
+                },
+                bytes: [0xF1, 0x4E]
+            },
+
+            "quarter frame MTC, piece 5": {
+                messageSpec: {
+                    type: "quarterFrameMTC",
+                    piece: 5,
+                    minute: 48
+                },
+                bytes: [0xF1, 0x53]
+            },
+
+            "quarter frame MTC, piece 6": {
+                messageSpec: {
+                    type: "quarterFrameMTC",
+                    piece: 6,
+                    hour: 13
+                },
+                bytes: [0xF1, 0x6D]
+            },
+
+            "quarter frame MTC, piece 7": {
+                messageSpec: {
+                    type: "quarterFrameMTC",
+                    piece: 7,
+                    rate: 3,
+                    hour: 16
+                },
+                bytes: [0xF1, 0x77]
             }
         },
 
@@ -290,4 +363,52 @@
     };
 
     youme.test.decodingTests();
+
+    /*
+
+        Although we have basic decoding and encoding tests above, because the values are split into "nibbles", the
+        examples all zeroed out one of the "nibbles" so that the results would match in both directions.
+
+        This test confirms that a complete timestamp can be broken down into quarter frames and reassembled without loss
+        of data. This test also confirms that the encoding ignores information it doesn't need for its particular
+        conversion.
+
+     */
+    jqUnit.test("Round-tripping tests for quarter frame MTC messages.", function () {
+        var fullTimestamp = {
+            rate: 3,
+            hour: 23,
+            minute: 59,
+            second: 59,
+            frame: 29
+        };
+
+        var quarterFramePieceMessages = [];
+        for (var piece = 0; piece < 8; piece++) {
+            var quarterFrameMTCObject = fluid.copy(fullTimestamp);
+            quarterFrameMTCObject.type = "quarterFrameMTC";
+            quarterFrameMTCObject.piece = piece;
+            var thisQuarterFrameBytes = youme.write.quarterFrameMTC(quarterFrameMTCObject);
+            var pureQuarterFrameMessage = youme.read.quarterFrameMTC(thisQuarterFrameBytes);
+            quarterFramePieceMessages.push(pureQuarterFrameMessage);
+        }
+
+        var assembledTimestamp = {
+            rate: 0,
+            hour: 0,
+            minute: 0,
+            second: 0,
+            frame: 0
+        };
+
+        fluid.each(quarterFramePieceMessages, function (singlePiece) {
+            fluid.each(["rate", "hour", "minute", "second", "frame"], function (property) {
+                if (singlePiece[property]) {
+                    assembledTimestamp[property] += singlePiece[property];
+                }
+            });
+        });
+
+        jqUnit.assertDeepEq("The original and reconstituted timestamp should match.", fullTimestamp, assembledTimestamp);
+    });
 })(fluid);

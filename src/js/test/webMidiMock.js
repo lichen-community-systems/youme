@@ -4,8 +4,6 @@
  *
  *  Licensed under the MIT license, see LICENSE for details.
  */
-
-/* globals Map, Promise */
 (function (fluid) {
     "use strict";
     var youme = fluid.registerNamespace("youme");

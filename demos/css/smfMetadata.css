@@ -1,0 +1,37 @@
+/*
+ * Copyright 2023, Tony Atkins
+ *
+ *  Licensed under the MIT license, see LICENSE for details.
+ */
+.smf-metadata {
+    margin-top: 1rem;
+    padding-left: 2rem;
+}
+
+.smf-metadata-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.metadata-header {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.metadata-header > .name {
+    align-content: flex-start;
+    font-weight: bold;
+    width: 100%;
+}
+
+.metadata-header > .copyright {
+    align-content: flex-end;
+    width: 100%;
+}
+
+.text {
+    font-style: italic;
+    margin-top: 1rem;
+}
