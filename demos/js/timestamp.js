@@ -17,14 +17,12 @@
 
             hour: 0,
             minute: 0,
-            second: 0,
-            frame: 0
+            second: 0
         },
         selectors: {
             hour: ".timestamp-hour",
             minute: ".timestamp-minute",
-            second: ".timestamp-second",
-            frame: ".timestamp-frame"
+            second: ".timestamp-second"
         },
         markup: {
             container: "<div class='timestamp'><div class='timestamp-hour'></div><div class='timestamp-minute'></div><div class='timestamp-second'></div></div>"
@@ -32,7 +30,7 @@
         modelListeners: {
             isRunning: {
                 funcName: "youme.demos.timestamp.toggleScheduler",
-                args: ["{berg.scheduler}", "{that}.model.isRunning", "{that}.tickSecond"] // isRunning, tickCallback
+                args: ["{berg.scheduler}", "{that}.model.isRunning", "{that}.tickSecond", "{that}.reset"] // isRunning, tickCallback, resetCallback
             }
         },
         modelRelay: {
@@ -59,6 +57,10 @@
             }
         },
         invokers: {
+            reset: {
+                func: "{that}.applier.change",
+                args: ["totalSeconds", -2] // No idea why I have to offset this by two, seems like a timing bug.
+            },
             tickSecond: {
                 funcName: "youme.demos.timestamp.tickSecond",
                 args: ["{that}"]
@@ -99,18 +101,19 @@
         transaction.commit();
     };
 
-    youme.demos.timestamp.toggleScheduler = function (scheduler, isRunning, callback) {
+    youme.demos.timestamp.toggleScheduler = function (scheduler, isRunning, tickCallback, resetCallback) {
         if (isRunning) {
-            scheduler.start();
             scheduler.schedule({
                 type: "repeat",
                 freq: 1,
-                callback: callback
+                callback: tickCallback
             });
+            scheduler.start();
         }
         else {
             scheduler.stop();
             scheduler.clearAll();
+            resetCallback();
         }
     };
 

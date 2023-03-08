@@ -83,11 +83,9 @@
                 options: {
                     components: {
                         clock: {
-                            // type: "berg.clock.raf",
                             type: "berg.clock.autoAudioContext",
                             options: {
                                 freq: 120
-                                // freq: 60
                             }
                         }
                     }
@@ -159,35 +157,19 @@
     });
 
     youme.demos.smf.player.handleStartButtonClick = function (that) {
-        if (that.scheduler) {
-            that.applier.change("isRunning", false);
-
-            // TODO: We can't stop a single scheduler, but we also don't seem to be able to recreate one without
-            // hitting a Fluid error.
-            try {
-                // TODO: Ask Colin about the error here.
-                // bergson-only.js:1376 Uncaught DOMException: Failed to execute 'disconnect' on 'AudioNode': the given destination is not connected.
-                //     at berg.clock.autoAudioContext.stop (file:///Users/duhrer/Source/projects/youme/node_modules/bergson/dist/bergson-only.js:1376:20)
-                //     at togo (file:///Users/duhrer/Source/projects/youme/node_modules/infusion/dist/infusion-all.js:148:99135)
-                //     at fire (file:///Users/duhrer/Source/projects/youme/node_modules/infusion/dist/infusion-all.js:139:25883)
-                //     at invokeInvoker (file:///Users/duhrer/Source/projects/youme/node_modules/infusion/dist/infusion-all.js:148:97450)
-                //     at togo (file:///Users/duhrer/Source/projects/youme/node_modules/infusion/dist/infusion-all.js:148:99135)
-                //     at fire (file:///Users/duhrer/Source/projects/youme/node_modules/infusion/dist/infusion-all.js:139:25883)
-                //     at fluid.componentConstructor.invokeInvoker [as stop] (file:///Users/duhrer/Source/projects/youme/node_modules/infusion/dist/infusion-all.js:148:97450)
-                //     at <anonymous>:1:21
+        // We should only start if a MIDI file has been loaded.
+        if (fluid.get(that, "model.midiObject.header")) {
+            if (that.scheduler) {
                 that.scheduler.stop();
+                that.scheduler.clearAll();
             }
-            catch (e) {
-                fluid.log(fluid.logLevel.WARN, "Error stopping scheduler.");
+            else {
+                // Create the scheduler now while we are clothed in divine user intent.
+                that.events.createScheduler.fire();
             }
-            that.scheduler.clearAll();
-        }
-        else {
-            // Create the scheduler now while we are clothed in divine user intent.
-            that.events.createScheduler.fire();
-        }
 
-        that.applier.change("isRunning", true);
+            that.applier.change("isRunning", true);
+        }
     };
 
     youme.demos.smf.player.handleRunningStateChange = function (that) {
@@ -241,13 +223,15 @@
             }
         }
         else {
-            try {
-                that.scheduler.stop();
-            }
-            catch (e) {
-                // TODO: Ask Colin about the error here.
-                fluid.log(fluid.logLevel.WARN, "Error stopping scheduler.");
-            }
+            that.scheduler.stop();
+
+            // Send "All Notes Off" to any outputs. This only works because we force all notes to channel 0.
+            that.events.sendMessage.fire({
+                type: "control",
+                channel: 0,
+                number: 123,
+                value: 0
+            });
         }
     };
 
@@ -307,9 +291,9 @@
 
                     if (singleEvent.message) {
                         // TODO: Figure out a saner way to optionally force all notes to one channel.
-                        // var singleChannelMessage = fluid.extend({}, singleEvent.message, { channel: 0});
-                        // that.events.sendMessage.fire(singleChannelMessage);
-                        that.events.sendMessage.fire(singleEvent.message);
+                        var singleChannelMessage = fluid.extend({}, singleEvent.message, { channel: 0});
+                        that.events.sendMessage.fire(singleChannelMessage);
+                        // that.events.sendMessage.fire(singleEvent.message);
                     }
                 }
             });
