@@ -182,7 +182,6 @@
                 //   2: multiple parallel tracks with independent timing per track.
 
                 // The default beat time, 0.5 seconds, divided by the default ticks/beat, 60.
-                // var secondsPerTick = 0.008333333333333;
                 var secondsPerTick = that.model.secondsPerTick;
 
                 // Arbitrary default to line up "ticks per quarter note" with the timestamp.
